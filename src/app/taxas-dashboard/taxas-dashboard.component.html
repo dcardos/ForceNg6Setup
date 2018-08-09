@@ -1,0 +1,97 @@
+<div class="grid-container">
+    <!-- <h1 class="mat-h1">Renegociar taxas, aluguel de POS e RAV</h1> -->
+    <mat-grid-list cols="2" rowHeight="100px">
+        <mat-grid-tile colspan="2" rowspan="2">
+            <div class="myCardCopy">
+                <h2>Renegociação #Numero - Nome do Cliente</h2>
+                <div style="display: flex; justify-content: space-around;">
+                    <h4>Status: _________</h4>
+                    <h4>Dia que foi aberta: ________</h4>
+                    <h4>Responsável: _____________</h4>
+                </div>
+            </div>
+        </mat-grid-tile>
+        <!-- <mat-grid-tile *ngFor="let card of cards | async" [colspan]="card.cols" [rowspan]="card.rows">
+            <mat-card class="dashboard-card">
+                <mat-card-header>
+                    <mat-card-title>
+                        {{card.title}}
+                        <button mat-icon-button class="more-button" [matMenuTriggerFor]="menu" aria-label="Toggle menu">
+                            <mat-icon>more_vert</mat-icon>
+                        </button>
+                        <mat-menu #menu="matMenu" xPosition="before">
+                            <button mat-menu-item>Expand</button>
+                            <button mat-menu-item>Remove</button>
+                        </mat-menu>
+                    </mat-card-title>
+                </mat-card-header>
+                <mat-card-content class="dashboard-card-content">
+                    <div>Card Content Here</div>
+                </mat-card-content>
+            </mat-card>
+        </mat-grid-tile> -->
+    </mat-grid-list>
+    <form [formGroup]="renegociacaoForm" (ngSubmit)="onSubmit()">
+        <div formArrayName="secoes">
+            <mat-accordion>
+                <mat-expansion-panel *ngFor="let nome of nomesExpansionPanels; let i=index;">
+                    <mat-expansion-panel-header>
+                        <mat-panel-title>
+                            {{nome}}
+                        </mat-panel-title>
+                        <!-- <mat-panel-description>
+                            Taxas para débito e crédito
+                        </mat-panel-description> -->
+                    </mat-expansion-panel-header>
+                    <div [formGroupName]="i">
+                        <mat-list>
+                            <mat-list-item>Débito</mat-list-item>
+                            <mat-divider></mat-divider>
+                            <div style="display: flex; justify-content: space-around; margin-top: 1rem;" formGroupName="debito">
+                                <mat-form-field>
+                                    <input matInput placeholder="Taxa Atual" formControlName="taxaAtual">
+                                </mat-form-field>
+                                
+                                <mat-form-field>
+                                    <input matInput placeholder="Cliente Pediu" formControlName="clientePediu">
+                                </mat-form-field>
+                                
+                                <mat-form-field>
+                                    <input matInput placeholder="Oferecido" formControlName="taxaOferecida">
+                                </mat-form-field>
+                            </div>
+                            <mat-list-item>Crédito</mat-list-item>
+                            <mat-divider></mat-divider>
+                            <div style="display: flex; justify-content: space-around; margin-top: 1rem;" formGroupName="credito">
+                                <mat-form-field>
+                                    <input matInput placeholder="Taxa Atual" formControlName="taxaAtual">
+                                </mat-form-field>
+                            
+                                <mat-form-field>
+                                    <input matInput placeholder="Cliente Pediu" formControlName="clientePediu">
+                                </mat-form-field>
+                            
+                                <mat-form-field>
+                                    <input matInput placeholder="Oferecido" formControlName="taxaOferecida">
+                                </mat-form-field>
+                            </div>
+                        </mat-list>
+                    </div>
+                    
+                </mat-expansion-panel>
+                <!-- <mat-expansion-panel (opened)="panelOpenState = true" (closed)="panelOpenState = false">
+                    <mat-expansion-panel-header>
+                        <mat-panel-title>
+                            Self aware panel
+                        </mat-panel-title>
+                        <mat-panel-description>
+                            Currently I am {{panelOpenState ? 'open' : 'closed'}}
+                        </mat-panel-description>
+                    </mat-expansion-panel-header>
+                    <p>I'm visible because I am open</p>
+                </mat-expansion-panel> -->
+            </mat-accordion>
+        </div>
+        <button type="submit" [disabled]="!renegociacaoForm.valid">Submit</button>
+    </form>
+</div>

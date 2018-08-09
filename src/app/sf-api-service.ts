@@ -25,7 +25,7 @@ const DEFAULT_CONFIG: CallConfiguration = { buffer: true, escape: false, timeout
 //Interface of the JS wrapper provided by Salesforce
 export interface DataApi {
 
-    helloAngular(name: string, callback : ApiHandler<string>, configuration : CallConfiguration) : void;
+    getAllPricingObjectFromAccount(accId: string, stonecode: string, callback : ApiHandler<string>, configuration : CallConfiguration) : void;
 }
 
 
@@ -79,9 +79,9 @@ export class SalesforceApiService {
         return new ApiObservableBuilder<T>();
     }
 
-    public helloAngular(name: string) : Observable<string> {
+    public getAllPricingObjectFromAccount(accId: string, stonecode: string) : Observable<string> {
         let api = getSfApiWrapper();
         let builder = this.getCallBuilder<string>();
-        return builder.build(() => api.helloAngular(name, builder.getResponseHandler(), DEFAULT_CONFIG));
+        return builder.build(() => api.getAllPricingObjectFromAccount(accId, stonecode, builder.getResponseHandler(), DEFAULT_CONFIG));
     }
 }
