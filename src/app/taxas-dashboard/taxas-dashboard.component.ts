@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { map } from 'rxjs/operators';
 import { Breakpoints, BreakpointState, BreakpointObserver } from '@angular/cdk/layout';
 import { FormBuilder, FormArray } from '@angular/forms';
+import { PricingObject } from '../SalesforceObjs';
+import { SalesforceApiService } from '../sf-api-service';
 
 @Component({
     selector: 'app-taxas-dashboard',
@@ -9,6 +11,7 @@ import { FormBuilder, FormArray } from '@angular/forms';
     styleUrls: ['./taxas-dashboard.component.css']
 })
 export class TaxasDashboardComponent {
+    pricingObj: PricingObject;
     nomesExpansionPanels = ['Taxas Visa/Master', 'Taxas Elo', 'Taxas Hiper', 'Taxas Amex'];
     renegociacaoForm = this.fb.group({
         secoes: this.fb.array([])
@@ -35,11 +38,19 @@ export class TaxasDashboardComponent {
         })
     );
 
-    constructor(private breakpointObserver: BreakpointObserver, private fb: FormBuilder) { }
+    constructor(
+        private breakpointObserver: BreakpointObserver, 
+        private fb: FormBuilder, 
+        private _sfApi: SalesforceApiService
+    ) { }
 
     ngOnInit() {
         this.nomesExpansionPanels.forEach(nome => {
             this.addSecoes();
+        });
+        this._sfApi.getAllPricingObjectFromAccount("0014100001kpXQnAAM").subscribe((pricingObjList) => {
+            console.log(pricingObjList);
+            this.pricingObj = pricingObjList[0];
         });
     }
 
@@ -65,5 +76,10 @@ export class TaxasDashboardComponent {
     onSubmit() {
         // TODO: Use EventEmitter with form value
         console.warn(this.renegociacaoForm.value);
+        console.log('Enviando PricingObj >>>>>>>>>>>>');
+        console.log(this.pricingObj);
+        this._sfApi.salvarTesteDanilo(this.pricingObj).subscribe((result) => {
+            console.log(result);
+        });
     }
 }

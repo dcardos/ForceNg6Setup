@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { BreakpointObserver, Breakpoints, BreakpointState } from '@angular/cdk/layout';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { SalesforceApiService } from './sf-api-service';
 
 @Component({
     selector: 'app-main-nav',
@@ -16,12 +15,11 @@ export class MainNavComponent {
             map(result => result.matches)
         );
 
-    constructor(private breakpointObserver: BreakpointObserver, private _sfApi: SalesforceApiService) { }
-
-    ngOnInit() {
-        this._sfApi.getAllPricingObjectFromAccount("0014100001kpXQnAAM", "784616978").subscribe((pricingObj) => {
-            console.log(pricingObj);
-        });
-    }
+    constructor(private breakpointObserver: BreakpointObserver) {
+        let url_string = window.location.href;
+        let url = new URL(url_string);
+        let id = url.searchParams.get("id");
+        console.log(id);
+     }
 
 }
