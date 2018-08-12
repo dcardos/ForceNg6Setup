@@ -10,7 +10,7 @@ import { MatCardModule, MatGridListModule, MatToolbarModule, MatButtonModule, Ma
 import { MainNavComponent } from './main-nav.component';
 import { LayoutModule } from '@angular/cdk/layout';
 import { TaxasDashboardComponent } from './taxas-dashboard/taxas-dashboard.component';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
     declarations: [
@@ -34,7 +34,7 @@ import { ReactiveFormsModule } from '@angular/forms';
         MatExpansionModule,
         MatFormFieldModule,
         MatInputModule,
-        ReactiveFormsModule
+        FormsModule
     ],
     providers: [
         SalesforceApiService,
