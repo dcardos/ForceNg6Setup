@@ -1,6 +1,4 @@
 import { Component } from '@angular/core';
-import { SalesforceApiService } from './sf-api-service';
-import { ActivatedRoute, Params } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -11,13 +9,10 @@ export class AppComponent {
     breakpoint: number;
     title = 'app';
 
-    constructor(private _sfApi: SalesforceApiService, private activatedRoute: ActivatedRoute) {}
+    constructor() {}
 
     ngOnInit() {
         this.breakpoint = (window.innerWidth <= 400) ? 1 : 6;
-        this.activatedRoute.queryParams.subscribe((params: Params) => {
-            console.log(params);
-        });
     }
 
     onResize(event) {

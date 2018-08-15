@@ -10,7 +10,7 @@ import { MatCardModule, MatGridListModule, MatToolbarModule, MatButtonModule, Ma
 import { MainNavComponent } from './main-nav.component';
 import { LayoutModule } from '@angular/cdk/layout';
 import { TaxasDashboardComponent } from './taxas-dashboard/taxas-dashboard.component';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
     declarations: [
@@ -34,14 +34,14 @@ import { FormsModule } from '@angular/forms';
         MatExpansionModule,
         MatFormFieldModule,
         MatInputModule,
-        FormsModule
+        ReactiveFormsModule
     ],
     providers: [
         SalesforceApiService,
         {
             provide: LocationStrategy,
             useClass: SalesforceHashLocationStrategy
-        }
+        }        
     ],
     bootstrap: [MainNavComponent]
 })

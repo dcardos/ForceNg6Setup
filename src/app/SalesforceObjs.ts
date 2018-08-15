@@ -1,3 +1,13 @@
+export class FrontPricing {
+    tituloPanel: string;
+    tituloSecoes: string[];
+
+    constructor(titulo: string, subtitulos: string[]) {
+        this.tituloPanel = titulo;
+        this.tituloSecoes = subtitulos;
+    }
+}
+
 export class PricingObject {
     API_Tem_Alcada__c: boolean;
     Account__c: string;
@@ -49,4 +59,29 @@ export class PricingObject {
     share_de_credito__c: number;
     share_de_debito__c: number;
     tpvAlterado__c: boolean;
+}
+
+export class Produto {
+    Account__c: string;
+    Aluguel__c: number;
+    Ativo_Stone__c: boolean;
+    Atual_Aluguel__c: number;
+    Atual_Dias_de_Insecao__c: number;
+    Data_Inicio_Isencao__c: number;
+    Dias_de_Insecao__c: number;
+    Id: string;
+    Meio_de_Captura__c: string;
+    Name: string;
+    Origem_Instala__c: boolean;
+    OwnerId: string;
+    Quantidade__c: number;
+    RecordTypeId: string;
+    Tecnologia__c: string;
+    captureMethodId__c: string;
+    modelId__c: string;
+    serialNumber__c: string;
+    statusId__c: string;
+    technologyTypeId__c: string;
+    terminalId__c: string;
+    typeCapId__c: string;
 }

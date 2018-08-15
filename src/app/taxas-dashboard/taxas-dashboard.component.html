@@ -1,111 +1,123 @@
 <div class="grid-container">
-    <!-- <h1 class="mat-h1">Renegociar taxas, aluguel de POS e RAV</h1> -->
-    <mat-grid-list cols="2" rowHeight="100px">
-        <mat-grid-tile colspan="2" rowspan="2">
-            <div class="myCardCopy">
-                <h2>Renegociação #Numero - Nome do Cliente</h2>
-                <div style="display: flex; justify-content: space-around;">
-                    <h4>Status: _________</h4>
-                    <h4>Dia que foi aberta: ________</h4>
-                    <h4>Responsável: _____________</h4>
-                </div>
-            </div>
-        </mat-grid-tile>
-        <!-- <mat-grid-tile *ngFor="let card of cards | async" [colspan]="card.cols" [rowspan]="card.rows">
-            <mat-card class="dashboard-card">
-                <mat-card-header>
-                    <mat-card-title>
-                        {{card.title}}
-                        <button mat-icon-button class="more-button" [matMenuTriggerFor]="menu" aria-label="Toggle menu">
-                            <mat-icon>more_vert</mat-icon>
-                        </button>
-                        <mat-menu #menu="matMenu" xPosition="before">
-                            <button mat-menu-item>Expand</button>
-                            <button mat-menu-item>Remove</button>
-                        </mat-menu>
-                    </mat-card-title>
-                </mat-card-header>
-                <mat-card-content class="dashboard-card-content">
-                    <div>Card Content Here</div>
-                </mat-card-content>
-            </mat-card>
-        </mat-grid-tile> -->
-    </mat-grid-list>
-    <form (ngSubmit)="onSubmit()" #RenegociacaoForm="ngForm">
-        <mat-accordion>
-            <mat-expansion-panel>
-                <mat-expansion-panel-header>
-                    <mat-panel-title>
-                        Taxa Visa/Master
-                    </mat-panel-title>
-                    <!-- <mat-panel-description>
-                        Taxas para débito e crédito
-                    </mat-panel-description> -->
-                </mat-expansion-panel-header>
-                <mat-list>
-                    <mat-list-item>Débito</mat-list-item>
-                    <mat-divider></mat-divider>
-                    <div style="display: flex; justify-content: space-around; margin-top: 1rem;">
-                        <mat-form-field>
-                            <input matInput type="number" placeholder="Taxa Atual" [(ngModel)]="pricingObj.Atual_Debito__c" name="taxaDebitoVisaMaster">
-                        </mat-form-field>
-                        
-                        <mat-form-field>
-                            <input matInput type="number" placeholder="Cliente Pediu">
-                        </mat-form-field>
-                        
-                        <mat-form-field>
-                            <input matInput type="number" placeholder="Oferecido">
-                        </mat-form-field>
+    <div class="myCardCopy">
+        <h1>Renegociação #Numero - Nome do Cliente</h1>
+        <div style="display: flex; justify-content: space-around;">
+            <p>Status: _________</p>
+            <p>Dia que foi aberta: ________</p>
+            <p>Responsável: _____________</p>
+        </div>
+    </div>
+    <div style="margin: 1rem"></div>
+    <form (ngSubmit)="onSubmit()"  [formGroup]="renegociacaoForm" autocomplete="off">
+        <div formArrayName="panelsBandeiras">
+            <mat-accordion>
+                <!-- Visa/Master -->
+                <mat-expansion-panel *ngFor="let panel of estruturaPricing; let i=index;">
+                    <mat-expansion-panel-header>
+                        <mat-panel-title>
+                            {{panel.tituloPanel}}
+                        </mat-panel-title>
+                        <!-- <mat-panel-description>
+                            Taxas para débito e crédito
+                        </mat-panel-description> -->
+                    </mat-expansion-panel-header>
+                    <div [formGroupName]="i">
+                        <mat-list>
+                            <div formArrayName="secoes" *ngFor="let secao of panel.tituloSecoes; let j=index;">
+                                <mat-list-item>{{secao}}</mat-list-item>
+                                <mat-divider></mat-divider>
+                                <div [formGroupName]="j">
+                                    <mat-grid-list [cols]="breakpoint" rowHeight="5rem">
+                                        <mat-grid-tile colspan="1">
+                                            <mat-form-field>
+                                                <input [value]="taxasAtuais[i][j] | number:'1.2-2'" matInput type="number" readonly placeholder="Taxa Atual" formControlName="taxaAtual">
+                                                <span matSuffix>%</span>
+                                            </mat-form-field>
+                                        </mat-grid-tile>
+                                        <mat-grid-tile colspan="1">
+                                            <mat-form-field>
+                                                <input step="0.01" matInput type="number" placeholder="Cliente pediu" formControlName="clientePediu">
+                                                <span matSuffix>%</span>
+                                                <mat-error>Taxa inválida</mat-error>
+                                            </mat-form-field>
+                                        </mat-grid-tile>
+                                        <mat-grid-tile colspan="1">   
+                                            <mat-form-field>
+                                                <input step="0.01" matInput type="number" placeholder="Oferecida" formControlName="taxaOferecida">
+                                                <span matSuffix>%</span>
+                                                <mat-error>Taxa inválida</mat-error>
+                                            </mat-form-field>
+                                        </mat-grid-tile>
+                                    </mat-grid-list>
+                                </div>                                
+                            </div>
+                        </mat-list>
                     </div>
-                    <mat-list-item>Crédito</mat-list-item>
-                    <mat-divider></mat-divider>
-                    <div style="display: flex; justify-content: space-around; margin-top: 1rem;">
-                        <mat-form-field>
-                            <input matInput type="number" placeholder="Taxa Atual" [(ngModel)]="pricingObj.Atual_Credito_a_Vista__c" name="taxaCreditoVisaMaster">
-                        </mat-form-field>
-                    
-                        <mat-form-field>
-                            <input matInput type="number" placeholder="Cliente Pediu">
-                        </mat-form-field>
-                    
-                        <mat-form-field>
-                            <input matInput type="number" placeholder="Oferecido">
-                        </mat-form-field>
-                    </div>
-                    <mat-list-item>Crédito 2 a 6x</mat-list-item>
-                    <mat-divider></mat-divider>
-                    <div style="display: flex; justify-content: space-around; margin-top: 1rem;">
-                        <mat-form-field>
-                            <input matInput type="number" placeholder="Taxa Atual" [(ngModel)]="pricingObj.Atual_Credito_2_a_6__c" name="taxaCredito2a6VisaMaster">
-                        </mat-form-field>
-                    
-                        <mat-form-field>
-                            <input matInput type="number" placeholder="Cliente Pediu">
-                        </mat-form-field>
-                    
-                        <mat-form-field>
-                            <input matInput type="number" placeholder="Oferecido">
-                        </mat-form-field>
-                    </div>
-                    <mat-list-item>Crédito 7 a 12x</mat-list-item>
-                    <mat-divider></mat-divider>
-                    <div style="display: flex; justify-content: space-around; margin-top: 1rem;">
-                        <mat-form-field>
-                            <input matInput type="number" placeholder="Taxa Atual" [(ngModel)]="pricingObj.Atual_Credito_7_a_12__c" name="taxaCredito7a12VisaMaster">
-                        </mat-form-field>
-                    
-                        <mat-form-field>
-                            <input matInput type="number" placeholder="Cliente Pediu">
-                        </mat-form-field>
-                    
-                        <mat-form-field>
-                            <input matInput type="number" placeholder="Oferecido">
-                        </mat-form-field>
-                    </div>
-                </mat-list>
-            </mat-expansion-panel>
-        </mat-accordion>
-        <button type="submit" [disabled]="!RenegociacaoForm.form.valid">Verificar alçada</button>
+                </mat-expansion-panel>
+            </mat-accordion>
+        </div>
+        <!-- Produtos -->
+        <div style="margin: 1rem;"></div>
+        <div formArrayName="panelsProdutos">
+            <mat-accordion>
+                <mat-expansion-panel *ngFor="let produto of produtos; let k=index;">
+                    <mat-expansion-panel-header>
+                        <mat-panel-title>
+                            Taxa {{produto.Meio_de_Captura__c}} - {{produto.Name}} - {{produto.Tecnologia__c}}
+                        </mat-panel-title>
+                    </mat-expansion-panel-header>
+                    <mat-list>
+                        <div [formGroupName]="k">
+                            <mat-list-item>Aluguel</mat-list-item>
+                            <mat-divider></mat-divider>
+                            <mat-grid-list [cols]="breakpoint" rowHeight="5rem">
+                                <mat-grid-tile colspan="1">
+                                    <mat-form-field>
+                                        <input [value]="produto.Atual_Aluguel__c | number:'1.2-2'" matInput type="number" readonly placeholder="Aluguel Atual" formControlName="aluguelAtual">
+                                        <span matPrefix>R$&nbsp;</span>
+                                    </mat-form-field>
+                                </mat-grid-tile>
+                                <mat-grid-tile colspan="1">
+                                    <mat-form-field>
+                                        <input step="0.01" matInput type="number" placeholder="Cliente Pediu" formControlName="clientePediuAluguel">
+                                        <span matPrefix>R$&nbsp;</span>
+                                        <mat-error>Aluguel inválido</mat-error>
+                                    </mat-form-field>
+                                </mat-grid-tile>
+                                <mat-grid-tile colspan="1">
+                                    <mat-form-field>
+                                        <input step="0.01" matInput type="number" placeholder="Oferecido" formControlName="aluguelOferecido">
+                                        <span matPrefix>R$&nbsp;</span>
+                                        <mat-error>Aluguel inválido</mat-error>
+                                    </mat-form-field>
+                                </mat-grid-tile>
+                            </mat-grid-list>
+                            <mat-list-item>Dias de isenção</mat-list-item>
+                            <mat-divider></mat-divider>
+                            <mat-grid-list [cols]="breakpoint" rowHeight="5rem">
+                                <mat-grid-tile colspan="1">
+                                    <mat-form-field>
+                                        <input [value]="produto.Atual_Dias_de_Insecao__c | number:'1.0-0'" matInput type="number" readonly placeholder="Dias de isenção atual" formControlName="diaIsencaoAtual">
+                                    </mat-form-field>
+                                </mat-grid-tile>
+                                <mat-grid-tile colspan="1">
+                                    <mat-form-field>
+                                        <input step="0.01" matInput type="number" placeholder="Cliente Pediu" formControlName="clientePediuIsencao">
+                                        <mat-error>Valor inválido</mat-error>
+                                    </mat-form-field>
+                                </mat-grid-tile>
+                                <mat-grid-tile colspan="1">
+                                    <mat-form-field>
+                                        <input step="0.01" matInput type="number" placeholder="Oferecido" formControlName="diasIsencaoOferecidos">
+                                        <mat-error>Valor inválido</mat-error>
+                                    </mat-form-field>
+                                </mat-grid-tile>
+                            </mat-grid-list>
+                        </div>
+                    </mat-list>
+                </mat-expansion-panel>
+            </mat-accordion>
+        </div>
+        <button type="submit" [disabled]="!renegociacaoForm.valid">Verificar alçada</button>
     </form>
 </div>

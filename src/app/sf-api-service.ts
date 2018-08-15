@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { Observable } from "../../node_modules/rxjs";
-import { PricingObject } from "./SalesforceObjs";
+import { PricingObject, Produto } from "./SalesforceObjs";
 
 declare var getSfApiWrapper : () => DataApi;
 
@@ -26,7 +26,7 @@ const DEFAULT_CONFIG: CallConfiguration = { buffer: true, escape: false, timeout
 //Interface of the JS wrapper provided by Salesforce
 export interface DataApi {
     getAllPricingObjectFromAccount(accId: string, callback: ApiHandler<PricingObject[]>, configuration : CallConfiguration) : void;
-    salvarTesteDanilo(prObj: PricingObject, callback: ApiHandler<boolean>, configuration: CallConfiguration) : void;
+    getAllProdutosFromPricing(accId: string, callback: ApiHandler<Produto[]>, configuration: CallConfiguration)
 }
 
 
@@ -86,9 +86,9 @@ export class SalesforceApiService {
         return builder.build(() => api.getAllPricingObjectFromAccount(accId, builder.getResponseHandler(), DEFAULT_CONFIG));
     }
 
-    public salvarTesteDanilo(prObj: PricingObject) : Observable<boolean> {
+    public getAllProdutosFromPricing(accId: string) : Observable<Produto[]> {
         let api = getSfApiWrapper();
-        let builder = this.getCallBuilder<boolean>();
-        return builder.build(() => api.salvarTesteDanilo(prObj, builder.getResponseHandler(), DEFAULT_CONFIG));
+        let builder = this.getCallBuilder<Produto[]>();
+        return builder.build(() => api.getAllProdutosFromPricing(accId, builder.getResponseHandler(), DEFAULT_CONFIG));
     }
 }
