@@ -43,6 +43,7 @@ export class PricingObject {
     Credito_a_Vista__c: number;
     Debito_EloSub__c: number;
     Debito__c: number;
+    email_aprovador__c: string;
     Id: string;
     OwnerId: string;
     Pode_Simular_Pricing__c: boolean;
@@ -84,4 +85,9 @@ export class Produto {
     technologyTypeId__c: string;
     terminalId__c: string;
     typeCapId__c: string;
+}
+
+export class AccountSF {
+    ExpectedTPV__c: number;
+    Quantidade_de_Lojas__c: number;
 }

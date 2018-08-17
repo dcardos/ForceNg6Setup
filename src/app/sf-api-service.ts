@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { Observable } from "../../node_modules/rxjs";
-import { PricingObject, Produto } from "./SalesforceObjs";
+import { PricingObject, Produto, AccountSF } from "./SalesforceObjs";
 
 declare var getSfApiWrapper : () => DataApi;
 
@@ -25,8 +25,14 @@ const DEFAULT_CONFIG: CallConfiguration = { buffer: true, escape: false, timeout
 
 //Interface of the JS wrapper provided by Salesforce
 export interface DataApi {
-    getAllPricingObjectFromAccount(accId: string, callback: ApiHandler<PricingObject[]>, configuration : CallConfiguration) : void;
-    getAllProdutosFromPricing(accId: string, callback: ApiHandler<Produto[]>, configuration: CallConfiguration)
+    getAllPricingObjectFromAccount(accId: string, callback: ApiHandler<PricingObject[]>, configuration : CallConfiguration);
+    getAllProdutosFromPricing(accId: string, callback: ApiHandler<Produto[]>, configuration: CallConfiguration);
+    getAccountInfos(accId: string, callback: ApiHandler<AccountSF>, configuration: CallConfiguration);
+    verificarAlcada(prObj: PricingObject, produtos: Produto[], conta: AccountSF, callback: ApiHandler<PricingObject>, configuration: CallConfiguration);
+    pedirAprovacao(prObj: PricingObject, produtos: Produto[], conta: AccountSF, callback: ApiHandler<PricingObject>, configuration: CallConfiguration);
+    desistir(prObj: PricingObject, produtos: Produto[], conta: AccountSF, callback: ApiHandler<PricingObject>, configuration: CallConfiguration);
+    aprovar(prObj: PricingObject, produtos: Produto[], conta: AccountSF, callback: ApiHandler<PricingObject>, configuration: CallConfiguration);
+    okCliente(prObj: PricingObject, produtos: Produto[], conta: AccountSF, callback: ApiHandler<PricingObject>, configuration: CallConfiguration);
 }
 
 
@@ -90,5 +96,41 @@ export class SalesforceApiService {
         let api = getSfApiWrapper();
         let builder = this.getCallBuilder<Produto[]>();
         return builder.build(() => api.getAllProdutosFromPricing(accId, builder.getResponseHandler(), DEFAULT_CONFIG));
+    }
+
+    public getAccountInfos(accId: string): Observable<AccountSF> {
+        let api = getSfApiWrapper();
+        let builder = this.getCallBuilder<AccountSF>();
+        return builder.build(() => api.getAccountInfos(accId, builder.getResponseHandler(), DEFAULT_CONFIG));
+    }
+
+    public verificarAlcada(prObj: PricingObject, produtos: Produto[], conta: AccountSF): Observable<PricingObject> {
+        let api = getSfApiWrapper();
+        let builder = this.getCallBuilder<PricingObject>();
+        return builder.build(() => api.verificarAlcada(prObj, produtos, conta, builder.getResponseHandler(), DEFAULT_CONFIG));
+    }
+
+    public pedirAprovacao(prObj: PricingObject, produtos: Produto[], conta: AccountSF): Observable<PricingObject> {
+        let api = getSfApiWrapper();
+        let builder = this.getCallBuilder<PricingObject>();
+        return builder.build(() => api.pedirAprovacao(prObj, produtos, conta, builder.getResponseHandler(), DEFAULT_CONFIG));
+    }
+
+    public desistir(prObj: PricingObject, produtos: Produto[], conta: AccountSF): Observable<PricingObject> {
+        let api = getSfApiWrapper();
+        let builder = this.getCallBuilder<PricingObject>();
+        return builder.build(() => api.desistir(prObj, produtos, conta, builder.getResponseHandler(), DEFAULT_CONFIG));
+    }
+
+    public aprovar(prObj: PricingObject, produtos: Produto[], conta: AccountSF): Observable<PricingObject> {
+        let api = getSfApiWrapper();
+        let builder = this.getCallBuilder<PricingObject>();
+        return builder.build(() => api.aprovar(prObj, produtos, conta, builder.getResponseHandler(), DEFAULT_CONFIG));
+    }
+
+    public okCliente(prObj: PricingObject, produtos: Produto[], conta: AccountSF): Observable<PricingObject> {
+        let api = getSfApiWrapper();
+        let builder = this.getCallBuilder<PricingObject>();
+        return builder.build(() => api.okCliente(prObj, produtos, conta, builder.getResponseHandler(), DEFAULT_CONFIG));
     }
 }
