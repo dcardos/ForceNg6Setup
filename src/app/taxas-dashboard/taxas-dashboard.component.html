@@ -5,7 +5,7 @@
     <form (ngSubmit)="onSubmit()" [formGroup]="renegociacaoForm" autocomplete="off">
         <div class="myCardCopy">
             <h1>Renegociação - {{account.Name}}</h1>
-            <mat-grid-list [cols]="breakpoint" rowHeight="5rem">
+            <mat-grid-list [cols]="breakpoint" rowHeight="6rem">
                 <mat-grid-tile colspan="1">
                     <p>Status: {{pricingObj.Pricing_Status__c}}</p>
                 </mat-grid-tile>
@@ -16,15 +16,17 @@
                     <p>Solicitante: {{pricingObj.CreatedById}}</p>
                 </mat-grid-tile>
                 <mat-grid-tile colspan="2">
-                    <mat-form-field style="width: 8rem;">
-                        <input matInput type="number" placeholder="TPV Estimado" formControlName="tpvEstimado" required>
+                    <mat-form-field style="width: 10rem;" appearance="outline">
+                        <mat-label>TPV Estimado</mat-label>
+                        <input matInput type="number" placeholder="0" formControlName="tpvEstimado" required>
                         <span matPrefix>R$&nbsp;</span>
                         <mat-error>Valor inválido</mat-error>
                     </mat-form-field>
                 </mat-grid-tile>
                 <mat-grid-tile colspan="1">
-                    <mat-form-field style="width: 5rem;">
-                        <input matInput type="number" placeholder="# lojas" formControlName="qtdLoja" required>
+                    <mat-form-field style="width: 6rem;" appearance="outline">
+                        <mat-label># lojas</mat-label>
+                        <input matInput type="number" placeholder="0" formControlName="qtdLoja" required>
                         <mat-error>Valor inválido</mat-error>
                     </mat-form-field>
                 </mat-grid-tile>
@@ -54,22 +56,25 @@
                                 <mat-list-item>{{secao}}</mat-list-item>
                                 <mat-divider></mat-divider>
                                 <div [formGroupName]="j">
-                                    <mat-grid-list [cols]="breakpoint" rowHeight="5rem">
+                                    <mat-grid-list [cols]="breakpoint" rowHeight="6rem">
                                         <mat-grid-tile colspan="1">
-                                            <mat-form-field>
+                                            <mat-form-field appearance="outline">
+                                                <mat-label>Atual</mat-label>
                                                 <input [value]="taxasAtuais[i][j] | number:'1.2-2'" matInput type="number" readonly placeholder="Taxa Atual" formControlName="taxaAtual">
                                                 <span matSuffix>%</span>
                                             </mat-form-field>
                                         </mat-grid-tile>
                                         <mat-grid-tile colspan="1">
-                                            <mat-form-field>
+                                            <mat-form-field appearance="outline">
+                                                <mat-label>Pedida</mat-label>
                                                 <input step="0.01" matInput type="number" placeholder="Cliente pediu" formControlName="clientePediu">
                                                 <span matSuffix>%</span>
                                                 <mat-error>Taxa inválida</mat-error>
                                             </mat-form-field>
                                         </mat-grid-tile>
                                         <mat-grid-tile colspan="1">   
-                                            <mat-form-field>
+                                            <mat-form-field appearance="outline">
+                                                <mat-label>Oferecida</mat-label>
                                                 <input step="0.01" matInput type="number" placeholder="Oferecida" formControlName="taxaOferecida">
                                                 <span matSuffix>%</span>
                                                 <mat-error>Taxa inválida</mat-error>

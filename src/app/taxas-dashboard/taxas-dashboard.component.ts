@@ -17,6 +17,8 @@ export class TaxasDashboardComponent {
     pricingObj = new PricingObject;
     produtos: Produto[];
     taxasAtuais: number[][];
+    taxasPedidas: number[][];
+    taxasOferecidas: number[][];
     estruturaPricing = new Array<FrontPricing>();
     renegociacaoForm = this.fb.group({
         panelsBandeiras: this.fb.array([]),
@@ -31,10 +33,13 @@ export class TaxasDashboardComponent {
     ) { 
         // inicializando o vetor de taxas atuais
         this.taxasAtuais = [];
+        this.taxasOferecidas = [];
         for (let i: number = 0; i < 5; i++) {
             this.taxasAtuais[i] = [];
+            this.taxasOferecidas[i] = [];
             for (let j: number = 0; j < 4; j++) {
                 this.taxasAtuais[i][j] = null;
+                this.taxasOferecidas[i][j] = null;
             }
         }
     }
@@ -62,7 +67,7 @@ export class TaxasDashboardComponent {
                 secoesFormArray.push(this.fb.group({
                     taxaAtual: [''],
                     clientePediu: ['', Validators.pattern('^[0-9]+(.[0-9]{1,2})?$')],
-                    taxaOferecida: ['', [Validators.pattern('^[0-9]+(.[0-9]{1,2})?$'), Validators.max(10)]],
+                    taxaOferecida: ['', [Validators.pattern('^[0-9]+(.[0-9]{1,2})?$'), Validators.max(9)]],
                 }));
             } 
             this.panelsBandeiras.push(secoesForm);
@@ -127,9 +132,36 @@ export class TaxasDashboardComponent {
             this.taxasAtuais[3][0] = this.pricingObj.Atual_Credito_Vista_Amex__c;
             this.taxasAtuais[3][1] = this.pricingObj.Atual_Credito_2_a_6_Amex__c;
             this.taxasAtuais[3][2] = this.pricingObj.Atual_Credito_7_a_12_Amex__c;
-            // setando taxas RAV
+            // setando taxas atuais RAV
             this.taxasAtuais[4][0] = this.pricingObj.Atual_Taxa_Automatica__c;
             this.taxasAtuais[4][1] = this.pricingObj.Atual_Taxa_Spot__c;
+            // setando taxas oferecidas - Visa/Master
+            this.taxasOferecidas[0][0] = this.pricingObj.Debito__c;
+            this.taxasOferecidas[0][1] = this.pricingObj.Credito_a_Vista__c;
+            this.taxasOferecidas[0][2] = this.pricingObj.Credito_2_a_6__c;
+            this.taxasOferecidas[0][3] = this.pricingObj.Credito_7_a_12__c;
+            // setando taxas oferecidas - Elo
+            this.taxasOferecidas[1][0] = this.pricingObj.Debito_EloSub__c;
+            this.taxasOferecidas[1][1] = this.pricingObj.Credito_a_Vista_EloSub__c;
+            this.taxasOferecidas[1][2] = this.pricingObj.Credito_2_a_6_EloSub__c;
+            this.taxasOferecidas[1][3] = this.pricingObj.Credito_7_a_12_EloSub__c;
+            // setando taxas oferecidas - Hiper
+            this.taxasOferecidas[2][0] = this.pricingObj.credito_a_vista_hiper__c;
+            this.taxasOferecidas[2][1] = this.pricingObj.credito_2_a_6_hiper__c;
+            this.taxasOferecidas[2][2] = this.pricingObj.credito_7_a_12_hiper__c;
+            // setando taxas oferecidas - Amex
+            this.taxasOferecidas[3][0] = this.pricingObj.Credito_Vista_Amex__c;
+            this.taxasOferecidas[3][1] = this.pricingObj.Credito_2_a_6_Amex__c;
+            this.taxasOferecidas[3][2] = this.pricingObj.Credito_7_a_12_Amex__c;
+            // setando taxas oferecidas RAV
+            this.taxasOferecidas[4][0] = this.pricingObj.Taxa_Automatica__c;
+            this.taxasOferecidas[4][1] = this.pricingObj.Taxa_Spot__c;
+            // mostrando no form as taxas oferecidas:
+            for (let i=0; i < this.estruturaPricing.length; i++) {
+                for (let j=0; j < this.estruturaPricing[i].tituloSecoes.length; j++) {
+                    (<FormArray>this.panelsBandeiras.at(i).get('secoes')).at(j).patchValue({ taxaOferecida: this.taxasOferecidas[i][j] });
+                }
+            }
         });
         
         // método para pegar meios de captura
@@ -143,10 +175,10 @@ export class TaxasDashboardComponent {
                 this.panelsProdutos.push(this.fb.group({
                     aluguelAtual: [''],
                     clientePediuAluguel: ['', Validators.pattern('^[0-9]+(.[0-9]{1,2})?$')],
-                    aluguelOferecido: ['', [Validators.pattern('^[0-9]+(.[0-9]{1,2})?$'), Validators.max(500)]],
+                    aluguelOferecido: [produto.Aluguel__c, [Validators.pattern('^[0-9]+(.[0-9]{1,2})?$'), Validators.max(500)]],
                     diaIsencaoAtual: [''],
                     clientePediuIsencao: ['', Validators.pattern('^[0-9]+?$')],
-                    diasIsencaoOferecidos: ['', [Validators.pattern('^[0-9]+?$'), Validators.max(999)]],
+                    diasIsencaoOferecidos: [produto.Dias_de_Insecao__c, [Validators.pattern('^[0-9]+?$'), Validators.max(999)]],
                 }));
             })
         });
