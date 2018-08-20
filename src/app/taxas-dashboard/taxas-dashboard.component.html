@@ -1,36 +1,38 @@
 <div id="loader" class="overlay" *ngIf="loader > 0">
     <img class="spinner" [src]="'assets/StoneLoading.gif' | staticpath" />
 </div>
-<div class="grid-container" (window:resize)="onResize($event)">
+<div class="grid-container" (window:resize)="onResize($event)" style="margin: 2%;">
     <form (ngSubmit)="onSubmit()" [formGroup]="renegociacaoForm" autocomplete="off">
         <div class="myCardCopy">
-            <h1>Renegociação - {{account.Name}}</h1>
-            <mat-grid-list [cols]="breakpoint" rowHeight="6rem">
+            <mat-grid-list [cols]="breakpoint" rowHeight="3.5rem">
+                <mat-grid-tile [colspan]="breakpoint" rowspan="2">
+                    <h1>{{account.Name}}</h1>
+                </mat-grid-tile>
                 <mat-grid-tile colspan="1">
                     <p>Status: {{pricingObj.Pricing_Status__c}}</p>
                 </mat-grid-tile>
-                <mat-grid-tile colspan="1" >
+                <mat-grid-tile colspan="1" *ngIf="pricingObj.Pricing_Status__c === 'Pediu Aprovação' || breakpoint === 3">
                     <p *ngIf="pricingObj.Pricing_Status__c === 'Pediu Aprovação'">Email do aprovador: {{pricingObj.email_aprovador__c}}</p>
                 </mat-grid-tile>
                 <mat-grid-tile colspan="1">
-                    <p>Solicitante: {{pricingObj.CreatedById}}</p>
+                    <p>Solicitante: {{pricingObj.CreatedById || userId}}</p>
                 </mat-grid-tile>
-                <mat-grid-tile colspan="2">
+                <mat-grid-tile [colspan]="breakpoint === 1 ? 1 : 2" rowspan="2">
                     <mat-form-field style="width: 10rem;" appearance="outline">
                         <mat-label>TPV Estimado</mat-label>
-                        <input matInput type="number" placeholder="0" formControlName="tpvEstimado" required>
+                        <input matInput type="number" placeholder="0" formControlName="tpvEstimado" required [readonly]="pricingObj.Pricing_Status__c === 'Novo' ? 'false' : 'true'">
                         <span matPrefix>R$&nbsp;</span>
                         <mat-error>Valor inválido</mat-error>
                     </mat-form-field>
                 </mat-grid-tile>
-                <mat-grid-tile colspan="1">
+                <mat-grid-tile colspan="1" rowspan="2">
                     <mat-form-field style="width: 6rem;" appearance="outline">
                         <mat-label># lojas</mat-label>
-                        <input matInput type="number" placeholder="0" formControlName="qtdLoja" required>
+                        <input matInput type="number" placeholder="0" formControlName="qtdLoja" required [readonly]="pricingObj.Pricing_Status__c === 'Novo' ? 'false' : 'true'">
                         <mat-error>Valor inválido</mat-error>
                     </mat-form-field>
                 </mat-grid-tile>
-                <mat-grid-tile colspan="3">
+                <mat-grid-tile [colspan]="breakpoint">
                     <p style="font-size: .6rem;">UserId: {{userId}}</p>
                     <p style="font-size: .6rem;">OnwerId: {{pricingObj.OwnerId}}</p>
                     <p style="font-size: .6rem;">CreatedById: {{pricingObj.CreatedById}}</p>
@@ -56,26 +58,26 @@
                                 <mat-list-item>{{secao}}</mat-list-item>
                                 <mat-divider></mat-divider>
                                 <div [formGroupName]="j">
-                                    <mat-grid-list [cols]="breakpoint" rowHeight="6rem">
+                                    <mat-grid-list cols="3" rowHeight="6rem">
                                         <mat-grid-tile colspan="1">
-                                            <mat-form-field appearance="outline">
+                                            <mat-form-field style="width: 6rem;" appearance="outline">
                                                 <mat-label>Atual</mat-label>
                                                 <input [value]="taxasAtuais[i][j] | number:'1.2-2'" matInput type="number" readonly placeholder="Taxa Atual" formControlName="taxaAtual">
                                                 <span matSuffix>%</span>
                                             </mat-form-field>
                                         </mat-grid-tile>
                                         <mat-grid-tile colspan="1">
-                                            <mat-form-field appearance="outline">
+                                            <mat-form-field style="width: 6rem;" appearance="outline">
                                                 <mat-label>Pedida</mat-label>
-                                                <input step="0.01" matInput type="number" placeholder="Cliente pediu" formControlName="clientePediu">
+                                                <input step="0.01" matInput type="number" placeholder="Cliente pediu" formControlName="clientePediu" [readonly]="pricingObj.Pricing_Status__c === 'Novo' ? 'false' : 'true'">
                                                 <span matSuffix>%</span>
                                                 <mat-error>Taxa inválida</mat-error>
                                             </mat-form-field>
                                         </mat-grid-tile>
                                         <mat-grid-tile colspan="1">   
-                                            <mat-form-field appearance="outline">
+                                            <mat-form-field style="width: 6rem;" appearance="outline">
                                                 <mat-label>Oferecida</mat-label>
-                                                <input step="0.01" matInput type="number" placeholder="Oferecida" formControlName="taxaOferecida">
+                                                <input step="0.01" matInput type="number" placeholder="Oferecida" formControlName="taxaOferecida" [readonly]="pricingObj.Pricing_Status__c === 'Novo' ? 'false' : 'true'">
                                                 <span matSuffix>%</span>
                                                 <mat-error>Taxa inválida</mat-error>
                                             </mat-form-field>
@@ -102,23 +104,26 @@
                         <div [formGroupName]="k">
                             <mat-list-item>Aluguel</mat-list-item>
                             <mat-divider></mat-divider>
-                            <mat-grid-list [cols]="breakpoint" rowHeight="5rem">
+                            <mat-grid-list cols="3" rowHeight="5rem">
                                 <mat-grid-tile colspan="1">
-                                    <mat-form-field>
+                                    <mat-form-field style="width: 6rem;" appearance="outline">
+                                        <mat-label>Atual</mat-label>
                                         <input [value]="produto.Atual_Aluguel__c | number:'1.2-2'" matInput type="number" readonly placeholder="Aluguel Atual" formControlName="aluguelAtual">
                                         <span matPrefix>R$&nbsp;</span>
                                     </mat-form-field>
                                 </mat-grid-tile>
                                 <mat-grid-tile colspan="1">
-                                    <mat-form-field>
-                                        <input step="0.01" matInput type="number" placeholder="Cliente Pediu" formControlName="clientePediuAluguel">
+                                    <mat-form-field style="width: 6rem;" appearance="outline">
+                                        <mat-label>Pedido</mat-label>
+                                        <input step="0.01" matInput type="number" placeholder="Cliente Pediu" formControlName="clientePediuAluguel" [readonly]="pricingObj.Pricing_Status__c === 'Novo' ? 'false' : 'true'">
                                         <span matPrefix>R$&nbsp;</span>
                                         <mat-error>Aluguel inválido</mat-error>
                                     </mat-form-field>
                                 </mat-grid-tile>
                                 <mat-grid-tile colspan="1">
-                                    <mat-form-field>
-                                        <input step="0.01" matInput type="number" placeholder="Oferecido" formControlName="aluguelOferecido">
+                                    <mat-form-field style="width: 6rem;" appearance="outline">
+                                        <mat-label>Oferecido</mat-label>
+                                        <input step="0.01" matInput type="number" placeholder="Oferecido" formControlName="aluguelOferecido" [readonly]="pricingObj.Pricing_Status__c === 'Novo' ? 'false' : 'true'">
                                         <span matPrefix>R$&nbsp;</span>
                                         <mat-error>Aluguel inválido</mat-error>
                                     </mat-form-field>
@@ -126,21 +131,26 @@
                             </mat-grid-list>
                             <mat-list-item>Dias de isenção</mat-list-item>
                             <mat-divider></mat-divider>
-                            <mat-grid-list [cols]="breakpoint" rowHeight="5rem">
+                            <mat-grid-list cols="3" rowHeight="5rem">
                                 <!-- <mat-grid-tile colspan="1">
                                     <mat-form-field>
                                         <input [value]="produto.Atual_Dias_de_Insecao__c | number:'1.0-0'" matInput type="number" readonly placeholder="Dias de isenção atual" formControlName="diaIsencaoAtual">
                                     </mat-form-field>
                                 </mat-grid-tile> -->
                                 <mat-grid-tile colspan="1">
-                                    <mat-form-field>
+                                    -
+                                </mat-grid-tile>
+                                <mat-grid-tile colspan="1">
+                                    <mat-form-field style="width: 6rem;" appearance="outline">
+                                        <mat-label>Pedido</mat-label>
                                         <input step="0.01" matInput type="number" placeholder="Cliente Pediu" formControlName="clientePediuIsencao">
                                         <mat-error>Valor inválido</mat-error>
                                     </mat-form-field>
                                 </mat-grid-tile>
                                 <mat-grid-tile colspan="1">
-                                    <mat-form-field>
-                                        <input matInput type="number" placeholder="Oferecido" formControlName="diasIsencaoOferecidos">
+                                    <mat-form-field style="width: 6rem;" appearance="outline">
+                                        <mat-label>Oferecido</mat-label>
+                                        <input matInput type="number" placeholder="Oferecido" formControlName="diasIsencaoOferecidos" [readonly]="pricingObj.Pricing_Status__c === 'Novo' ? 'false' : 'true'">
                                         <mat-error>Valor inválido</mat-error>
                                     </mat-form-field>
                                 </mat-grid-tile>

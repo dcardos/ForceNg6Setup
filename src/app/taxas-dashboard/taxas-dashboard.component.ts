@@ -114,48 +114,8 @@ export class TaxasDashboardComponent {
             console.log('getAllPricingObjectFromAccount id = acctId: ');
             console.log(pricingObjList);
             this.pricingObj = pricingObjList[0];
-            // setando taxas atuais - Visa/Master
-            this.taxasAtuais[0][0] = this.pricingObj.Atual_Debito__c;
-            this.taxasAtuais[0][1] = this.pricingObj.Atual_Credito_a_Vista__c;
-            this.taxasAtuais[0][2] = this.pricingObj.Atual_Credito_2_a_6__c;
-            this.taxasAtuais[0][3] = this.pricingObj.Atual_Credito_7_a_12__c;
-            // setando taxas atuais - Elo
-            this.taxasAtuais[1][0] = this.pricingObj.Atual_Debito_EloSub__c;
-            this.taxasAtuais[1][1] = this.pricingObj.Atual_Credito_a_Vista_EloSub__c;
-            this.taxasAtuais[1][2] = this.pricingObj.Atual_Credito_2_a_6_EloSub__c;
-            this.taxasAtuais[1][3] = this.pricingObj.Atual_Credito_7_a_12_EloSub__c;
-            // setando taxas atuais - Hiper
-            this.taxasAtuais[2][0] = this.pricingObj.Atual_credito_a_vista_hiper__c;
-            this.taxasAtuais[2][1] = this.pricingObj.Atual_credito_2_a_6_hiper__c;
-            this.taxasAtuais[2][2] = this.pricingObj.Atual_credito_7_a_12_hiper__c;
-            // setando taxas atuais - Amex
-            this.taxasAtuais[3][0] = this.pricingObj.Atual_Credito_Vista_Amex__c;
-            this.taxasAtuais[3][1] = this.pricingObj.Atual_Credito_2_a_6_Amex__c;
-            this.taxasAtuais[3][2] = this.pricingObj.Atual_Credito_7_a_12_Amex__c;
-            // setando taxas atuais RAV
-            this.taxasAtuais[4][0] = this.pricingObj.Atual_Taxa_Automatica__c;
-            this.taxasAtuais[4][1] = this.pricingObj.Atual_Taxa_Spot__c;
-            // setando taxas oferecidas - Visa/Master
-            this.taxasOferecidas[0][0] = this.pricingObj.Debito__c;
-            this.taxasOferecidas[0][1] = this.pricingObj.Credito_a_Vista__c;
-            this.taxasOferecidas[0][2] = this.pricingObj.Credito_2_a_6__c;
-            this.taxasOferecidas[0][3] = this.pricingObj.Credito_7_a_12__c;
-            // setando taxas oferecidas - Elo
-            this.taxasOferecidas[1][0] = this.pricingObj.Debito_EloSub__c;
-            this.taxasOferecidas[1][1] = this.pricingObj.Credito_a_Vista_EloSub__c;
-            this.taxasOferecidas[1][2] = this.pricingObj.Credito_2_a_6_EloSub__c;
-            this.taxasOferecidas[1][3] = this.pricingObj.Credito_7_a_12_EloSub__c;
-            // setando taxas oferecidas - Hiper
-            this.taxasOferecidas[2][0] = this.pricingObj.credito_a_vista_hiper__c;
-            this.taxasOferecidas[2][1] = this.pricingObj.credito_2_a_6_hiper__c;
-            this.taxasOferecidas[2][2] = this.pricingObj.credito_7_a_12_hiper__c;
-            // setando taxas oferecidas - Amex
-            this.taxasOferecidas[3][0] = this.pricingObj.Credito_Vista_Amex__c;
-            this.taxasOferecidas[3][1] = this.pricingObj.Credito_2_a_6_Amex__c;
-            this.taxasOferecidas[3][2] = this.pricingObj.Credito_7_a_12_Amex__c;
-            // setando taxas oferecidas RAV
-            this.taxasOferecidas[4][0] = this.pricingObj.Taxa_Automatica__c;
-            this.taxasOferecidas[4][1] = this.pricingObj.Taxa_Spot__c;
+            this.populaMatrixTaxaAtual();
+            this.populaMatrixTaxaOferecida();
             // mostrando no form as taxas oferecidas:
             for (let i=0; i < this.estruturaPricing.length; i++) {
                 for (let j=0; j < this.estruturaPricing[i].tituloSecoes.length; j++) {
@@ -234,6 +194,7 @@ export class TaxasDashboardComponent {
         // tratando account
         this.account.ExpectedTPV__c = this.renegociacaoForm.get('tpvEstimado').value;
         this.account.Quantidade_de_Lojas__c = this.renegociacaoForm.get('qtdLoja').value;
+        // verificando no formulário
         if (!this.account.ExpectedTPV__c) {
             swal({
                 title: 'Atenção',
@@ -247,6 +208,24 @@ export class TaxasDashboardComponent {
             swal({
                 title: 'Atenção',
                 text: 'Preencha a quantidade de loja',
+                type: 'warning',
+                confirmButtonColor: '#14AA48'
+            });
+            return;
+        }
+        if (!this.pricingObj.Credito_Vista_Amex__c || !this.pricingObj.Credito_2_a_6_Amex__c || !this.pricingObj.Credito_7_a_12_Amex__c) {
+            swal({
+                title: 'Atenção',
+                text: 'Taxas amex devem ser preenchidas!',
+                type: 'warning',
+                confirmButtonColor: '#14AA48'
+            });
+            return;
+        }
+        if (!this.verificaSeMudouAlgumaCondicao()) {
+            swal({
+                title: 'Atenção',
+                text: 'Nenhuma taxa ou condição foi modificada!',
                 type: 'warning',
                 confirmButtonColor: '#14AA48'
             });
@@ -392,5 +371,80 @@ export class TaxasDashboardComponent {
                 });
             }
         });
+    }
+
+    private populaMatrixTaxaAtual() {
+        // setando taxas atuais - Visa/Master
+        this.taxasAtuais[0][0] = this.pricingObj.Atual_Debito__c;
+        this.taxasAtuais[0][1] = this.pricingObj.Atual_Credito_a_Vista__c;
+        this.taxasAtuais[0][2] = this.pricingObj.Atual_Credito_2_a_6__c;
+        this.taxasAtuais[0][3] = this.pricingObj.Atual_Credito_7_a_12__c;
+        // setando taxas atuais - Elo
+        this.taxasAtuais[1][0] = this.pricingObj.Atual_Debito_EloSub__c;
+        this.taxasAtuais[1][1] = this.pricingObj.Atual_Credito_a_Vista_EloSub__c;
+        this.taxasAtuais[1][2] = this.pricingObj.Atual_Credito_2_a_6_EloSub__c;
+        this.taxasAtuais[1][3] = this.pricingObj.Atual_Credito_7_a_12_EloSub__c;
+        // setando taxas atuais - Hiper
+        this.taxasAtuais[2][0] = this.pricingObj.Atual_credito_a_vista_hiper__c;
+        this.taxasAtuais[2][1] = this.pricingObj.Atual_credito_2_a_6_hiper__c;
+        this.taxasAtuais[2][2] = this.pricingObj.Atual_credito_7_a_12_hiper__c;
+        // setando taxas atuais - Amex
+        this.taxasAtuais[3][0] = this.pricingObj.Atual_Credito_Vista_Amex__c;
+        this.taxasAtuais[3][1] = this.pricingObj.Atual_Credito_2_a_6_Amex__c;
+        this.taxasAtuais[3][2] = this.pricingObj.Atual_Credito_7_a_12_Amex__c;
+        // setando taxas atuais RAV
+        this.taxasAtuais[4][0] = this.pricingObj.Atual_Taxa_Automatica__c;
+        this.taxasAtuais[4][1] = this.pricingObj.Atual_Taxa_Spot__c;
+    }
+
+    private populaMatrixTaxaOferecida() {
+        // setando taxas oferecidas - Visa/Master
+        this.taxasOferecidas[0][0] = this.pricingObj.Debito__c;
+        this.taxasOferecidas[0][1] = this.pricingObj.Credito_a_Vista__c;
+        this.taxasOferecidas[0][2] = this.pricingObj.Credito_2_a_6__c;
+        this.taxasOferecidas[0][3] = this.pricingObj.Credito_7_a_12__c;
+        // setando taxas oferecidas - Elo
+        this.taxasOferecidas[1][0] = this.pricingObj.Debito_EloSub__c;
+        this.taxasOferecidas[1][1] = this.pricingObj.Credito_a_Vista_EloSub__c;
+        this.taxasOferecidas[1][2] = this.pricingObj.Credito_2_a_6_EloSub__c;
+        this.taxasOferecidas[1][3] = this.pricingObj.Credito_7_a_12_EloSub__c;
+        // setando taxas oferecidas - Hiper
+        this.taxasOferecidas[2][0] = this.pricingObj.credito_a_vista_hiper__c;
+        this.taxasOferecidas[2][1] = this.pricingObj.credito_2_a_6_hiper__c;
+        this.taxasOferecidas[2][2] = this.pricingObj.credito_7_a_12_hiper__c;
+        // setando taxas oferecidas - Amex
+        this.taxasOferecidas[3][0] = this.pricingObj.Credito_Vista_Amex__c;
+        this.taxasOferecidas[3][1] = this.pricingObj.Credito_2_a_6_Amex__c;
+        this.taxasOferecidas[3][2] = this.pricingObj.Credito_7_a_12_Amex__c;
+        // setando taxas oferecidas RAV
+        this.taxasOferecidas[4][0] = this.pricingObj.Taxa_Automatica__c;
+        this.taxasOferecidas[4][1] = this.pricingObj.Taxa_Spot__c;
+    }
+
+    private verificaSeMudouAlgumaCondicao(): boolean {
+        let flagMudou = false;
+        this.populaMatrixTaxaOferecida();
+        for (let i=0; i<this.taxasAtuais.length; i++) {
+            for (let j=0; j<this.taxasAtuais[i].length; j++) {
+                if (this.taxasAtuais[i][j] != this.taxasOferecidas[i][j]) {
+                    // console.log(this.taxasAtuais[i][j] + ' != ' + this.taxasOferecidas[i][j]);
+                    flagMudou = true;
+                    break;
+                }
+            }
+        }
+        this.produtos.forEach(produto => {
+            if (produto.Aluguel__c != produto.Atual_Aluguel__c) {
+                // console.log('AAAAAAAAAAAAAAAAAHHHHHHHHH!');
+                // console.log(produto.Aluguel__c + ' != ' + produto.Atual_Aluguel__c);
+                flagMudou = true;
+            }
+            if (produto.Dias_de_Insecao__c) {
+                // console.log('AAAAAAAAAAAAAAAAAHHHHHHHHH!');
+                // console.log(produto.Dias_de_Insecao__c);
+                flagMudou = true;
+            }
+        })
+        return flagMudou;
     }
 }

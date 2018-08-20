@@ -1,5 +1,14 @@
 /* You can add global styles to this file, and also import other style files */
-@import '~@angular/material/prebuilt-themes/indigo-pink.css';
+@import '~@angular/material/theming';
+@include mat-core();
+
+$my-theme-primary: mat-palette($mat-green);
+$my-theme-accent: mat-palette($mat-light-green);
+$my-theme-warm: mat-palette($mat-red);
+
+$my-theme: mat-light-theme($my-theme-primary, $my-theme-accent, $my-theme-warm);
+
+@include angular-material-theme($my-theme);
 
 body {
     margin: 0;
@@ -8,6 +17,11 @@ body {
 
 .swal2-popup {
     font-family: Roboto !important;
+}
+
+.mat-form-field-appearance-outline .mat-form-field-prefix, 
+.mat-form-field-appearance-outline .mat-form-field-suffix {
+    top: -0.2em !important;
 }
 
 p {
@@ -29,4 +43,11 @@ h3 {
 	color: #14AA48;
 	font-weight: bold;
 	font-size: .8rem;	
+}
+
+/* Mobile */
+@media all and (max-width: 740px) {
+	h1 {
+		font-size: 1.5rem;
+	}
 }
