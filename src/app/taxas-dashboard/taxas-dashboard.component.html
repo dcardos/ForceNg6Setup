@@ -8,7 +8,7 @@
                 <mat-grid-tile [colspan]="breakpoint" rowspan="2">
                     <h1>{{account.Name}}</h1>
                 </mat-grid-tile>
-                <mat-grid-tile colspan="1">
+                <!-- <mat-grid-tile colspan="1">
                     <p>Status: {{pricingObj.Pricing_Status__c}}</p>
                 </mat-grid-tile>
                 <mat-grid-tile colspan="1" *ngIf="pricingObj.Pricing_Status__c === 'Pediu Aprovação' || breakpoint === 3">
@@ -16,7 +16,7 @@
                 </mat-grid-tile>
                 <mat-grid-tile colspan="1">
                     <p>Solicitante: {{pricingObj.CreatedById || userId}}</p>
-                </mat-grid-tile>
+                </mat-grid-tile> -->
                 <mat-grid-tile [colspan]="breakpoint === 1 ? 1 : 2" rowspan="2">
                     <mat-form-field style="width: 10rem;" appearance="outline">
                         <mat-label>TPV Estimado</mat-label>
@@ -32,11 +32,11 @@
                         <mat-error>Valor inválido</mat-error>
                     </mat-form-field>
                 </mat-grid-tile>
-                <mat-grid-tile [colspan]="breakpoint">
+                <!-- <mat-grid-tile [colspan]="breakpoint">
                     <p style="font-size: .6rem;">UserId: {{userId}}</p>
                     <p style="font-size: .6rem;">OnwerId: {{pricingObj.OwnerId}}</p>
                     <p style="font-size: .6rem;">CreatedById: {{pricingObj.CreatedById}}</p>
-                </mat-grid-tile>
+                </mat-grid-tile> -->
             </mat-grid-list>
         </div>
         <div style="margin: 1rem"></div>
@@ -55,7 +55,7 @@
                     <div [formGroupName]="i">
                         <mat-list>
                             <div formArrayName="secoes" *ngFor="let secao of panel.tituloSecoes; let j=index;">
-                                <mat-list-item>{{secao}}</mat-list-item>
+                                <mat-list-item>{{secao}} - médio rota: {{balizador[i][j] | number:'1.2-2'}}%</mat-list-item>
                                 <mat-divider></mat-divider>
                                 <div [formGroupName]="j">
                                     <mat-grid-list cols="3" rowHeight="6rem">
@@ -66,20 +66,27 @@
                                                 <span matSuffix>%</span>
                                             </mat-form-field>
                                         </mat-grid-tile>
-                                        <mat-grid-tile colspan="1">
+                                        <!-- <mat-grid-tile colspan="1">
                                             <mat-form-field style="width: 6rem;" appearance="outline">
                                                 <mat-label>Pedida</mat-label>
                                                 <input step="0.01" matInput type="number" placeholder="Cliente pediu" formControlName="clientePediu" [readonly]="pricingObj.Pricing_Status__c === 'Novo' ? 'false' : 'true'">
                                                 <span matSuffix>%</span>
                                                 <mat-error>Taxa inválida</mat-error>
                                             </mat-form-field>
-                                        </mat-grid-tile>
+                                        </mat-grid-tile> -->
                                         <mat-grid-tile colspan="1">   
                                             <mat-form-field style="width: 6rem;" appearance="outline">
                                                 <mat-label>Oferecida</mat-label>
                                                 <input step="0.01" matInput type="number" placeholder="Oferecida" formControlName="taxaOferecida" [readonly]="pricingObj.Pricing_Status__c === 'Novo' ? 'false' : 'true'">
                                                 <span matSuffix>%</span>
                                                 <mat-error>Taxa inválida</mat-error>
+                                            </mat-form-field>
+                                        </mat-grid-tile>
+                                        <mat-grid-tile colspan="1" *ngIf="i < 4 && pricingObj.Pricing_Status__c != 'Novo'">
+                                            <mat-form-field style="width: 6rem;" appearance="outline">
+                                                <mat-label>Net</mat-label>
+                                                <input matInput type="number" placeholder="Net" formControlName="valorNet" readonly [value]="taxasNet[i][j] | number:'1.2-2'">
+                                                <span matSuffix>%</span>
                                             </mat-form-field>
                                         </mat-grid-tile>
                                     </mat-grid-list>
@@ -97,7 +104,7 @@
                 <mat-expansion-panel *ngFor="let produto of produtos; let k=index;">
                     <mat-expansion-panel-header>
                         <mat-panel-title>
-                            Taxa {{produto.Meio_de_Captura__c}} - {{produto.captureMethodId__c}} - {{produto.Tecnologia__c}}
+                            Aluguel {{produto.Meio_de_Captura__c}} - {{produto.captureMethodId__c}} - {{produto.Tecnologia__c}}
                         </mat-panel-title>
                     </mat-expansion-panel-header>
                     <mat-list>
@@ -178,7 +185,7 @@
                 <button mat-raised-button type=button (click)="descartar()">Descartar</button>
             </mat-grid-tile>
         </mat-grid-list>
-        <h3>Botões abaixo sempre aparecem - debug</h3>
+        <!-- <h3>Botões abaixo sempre aparecem - debug</h3>
         <mat-divider></mat-divider>
         <mat-grid-list [cols]="breakpoint" rowHeight="5rem">
             <mat-grid-tile colspan="1">
@@ -205,6 +212,6 @@
             <mat-grid-tile colspan="1">
                 <button mat-raised-button type=button (click)="userId = 'xxx123'">Virar Outro</button>
             </mat-grid-tile>
-        </mat-grid-list>
+        </mat-grid-list> -->
     </form>
 </div>
