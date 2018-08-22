@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { Observable } from "../../node_modules/rxjs";
-import { PricingObject, Produto, AccountSF } from "./SalesforceObjs";
+import { PricingObject, Produto, AccountSF, Usuario } from "./SalesforceObjs";
 
 declare var getSfApiWrapper : () => DataApi;
 
@@ -33,6 +33,7 @@ export interface DataApi {
     desistir(prObj: PricingObject, produtos: Produto[], conta: AccountSF, callback: ApiHandler<PricingObject>, configuration: CallConfiguration);
     aprovar(prObj: PricingObject, produtos: Produto[], conta: AccountSF, callback: ApiHandler<PricingObject>, configuration: CallConfiguration);
     okCliente(prObj: PricingObject, produtos: Produto[], conta: AccountSF, callback: ApiHandler<PricingObject>, configuration: CallConfiguration);
+    userInfoById(id: string, callback: ApiHandler<Usuario>, configuration: CallConfiguration);
 }
 
 
@@ -132,5 +133,11 @@ export class SalesforceApiService {
         let api = getSfApiWrapper();
         let builder = this.getCallBuilder<PricingObject>();
         return builder.build(() => api.okCliente(prObj, produtos, conta, builder.getResponseHandler(), DEFAULT_CONFIG));
+    }
+
+    public userInfoById(id: string): Observable<Usuario> {
+        let api = getSfApiWrapper();
+        let builder = this.getCallBuilder<Usuario>();
+        return builder.build(() => api.userInfoById(id, builder.getResponseHandler(), DEFAULT_CONFIG));
     }
 }

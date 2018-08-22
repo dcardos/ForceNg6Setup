@@ -91,6 +91,8 @@ export class PricingObject {
     Debito__c: number;
     email_aprovador__c: string;
     Id: string;
+    Justificativa_de_descarte__c: string;
+    Justificativa_de_Proposta__c: string;
     OwnerId: string;
     Pode_Simular_Pricing__c: boolean;
     Pricing_Status__c: string;
@@ -106,6 +108,11 @@ export class PricingObject {
     share_de_credito__c: number;
     share_de_debito__c: number;
     tpvAlterado__c: boolean;
+}
+
+export class Usuario {
+    Name: string;
+    Email: string;
 }
 
 export class Produto {

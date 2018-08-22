@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { SalesforceApiService } from '../sf-api-service';
-import { PricingObject, Produto, FrontPricing, AccountSF } from '../SalesforceObjs';
+import { PricingObject, Produto, FrontPricing, AccountSF, Usuario } from '../SalesforceObjs';
 import swal from 'sweetalert2';
 import { FormBuilder, FormArray, Validators } from '@angular/forms';
 
@@ -12,9 +12,12 @@ import { FormBuilder, FormArray, Validators } from '@angular/forms';
 export class TaxasDashboardComponent {
     breakpoint: number;
     loader = 0;
+    dataCriacaoRenegociacao: Date;
     userId: string;
+    usuarioDono: Usuario;
+    usuarioCriador: Usuario;
+    _pricingObj: PricingObject;
     account = new AccountSF;
-    pricingObj = new PricingObject;
     produtos: Produto[];
     taxasAtuais: number[][];
     taxasPedidas: number[][];
@@ -26,7 +29,8 @@ export class TaxasDashboardComponent {
         panelsBandeiras: this.fb.array([]),
         panelsProdutos: this.fb.array([]),
         tpvEstimado: ['', [Validators.pattern('^[0-9]+(.[0-9]{1,2})?$')]],
-        qtdLoja: ['', [Validators.pattern('^[0-9]+$')]] 
+        qtdLoja: ['', [Validators.pattern('^[0-9]+$')]],
+        justificativaProposta: ['']
     });
 
     constructor(
@@ -54,6 +58,60 @@ export class TaxasDashboardComponent {
             }
         }
     }
+
+    
+    public set pricingObj(pricing : PricingObject) {
+        this._pricingObj = pricing;
+        if (this._pricingObj.CreatedDate) {
+            this.dataCriacaoRenegociacao = new Date(this._pricingObj.CreatedDate);
+        }
+        console.log('PRICING: ');
+        console.log(pricing);
+        this.populaMatrixTaxaAtual();
+        // this.populaMatrixCliente();
+        this.populaMatrixTaxaOferecida();
+        this.populaMatrixNet();
+        this.populaBalizador();
+        console.log('TAXAS ATUAIS: ');
+        console.log(this.taxasAtuais);
+        console.log('TAXAS OFERECIDAS: ');
+        console.log(this.taxasOferecidas);
+        console.log('TAXAS NET: ');
+        console.log(this.taxasNet);
+        console.log('TAXAS BALIZADOR: ');
+        console.log(this.balizador);
+        // mostrando no form as taxas pedidas e oferecidas:
+        for (let i = 0; i < this.estruturaPricing.length; i++) {
+            for (let j = 0; j < this.estruturaPricing[i].tituloSecoes.length; j++) {
+                // (<FormArray>this.panelsBandeiras.at(i).get('secoes')).at(j).patchValue({ clientePediu: this.taxasPedidas[i][j] });
+                (<FormArray>this.panelsBandeiras.at(i).get('secoes')).at(j).patchValue({ taxaOferecida: this.taxasOferecidas[i][j], valorNet: this.taxasNet[i][j] });
+            }
+        }
+        this.renegociacaoForm.patchValue({ justificativaProposta: this.pricingObj.Justificativa_de_Proposta__c });
+        // pegando usuário dono da negociação
+        if (this.pricingObj.OwnerId) {
+            this._sfApi.userInfoById(this.pricingObj.OwnerId).subscribe(usuario => {
+                this.usuarioDono = usuario;
+            });
+        }
+        // pegando usuário criador da negociação
+        if (this.pricingObj.CreatedById) {
+            console.log("Buscando pricing criador com id: " + this.pricingObj.CreatedById);
+            this._sfApi.userInfoById(this.pricingObj.CreatedById).subscribe(usuario => {
+                this.usuarioCriador = usuario;
+            });
+        } else if (this.userId){
+            console.log("Buscando usuario criador com id: " + this.userId);
+            this._sfApi.userInfoById(this.userId).subscribe(usuario => {
+                this.usuarioCriador = usuario;
+            });
+        }
+    }
+
+    public get pricingObj() {
+        return this._pricingObj;
+    }
+    
 
     ngOnInit() {
         // para tela responsiva
@@ -123,21 +181,7 @@ export class TaxasDashboardComponent {
         this.loader++;
         this._sfApi.getAllPricingObjectFromAccount(acctId).subscribe((pricingObjList) => {
             this.loader--;
-            console.log('getAllPricingObjectFromAccount id = acctId: ');
-            console.log(pricingObjList);
             this.pricingObj = pricingObjList[0];
-            this.populaMatrixTaxaAtual();
-            // this.populaMatrixCliente();
-            this.populaMatrixTaxaOferecida();
-            this.populaMatrixNet();
-            this.populaBalizador();
-            // mostrando no form as taxas pedidas e oferecidas:
-            for (let i=0; i < this.estruturaPricing.length; i++) {
-                for (let j=0; j < this.estruturaPricing[i].tituloSecoes.length; j++) {
-                    // (<FormArray>this.panelsBandeiras.at(i).get('secoes')).at(j).patchValue({ clientePediu: this.taxasPedidas[i][j] });
-                    (<FormArray>this.panelsBandeiras.at(i).get('secoes')).at(j).patchValue({ taxaOferecida: this.taxasOferecidas[i][j], valorNet: this.taxasNet[i][j] });
-                }
-            }
         });
         
         // método para pegar meios de captura
@@ -271,11 +315,11 @@ export class TaxasDashboardComponent {
             return;
         }
         // LOG:
-        console.log('Enviando account >>>>>>>>>>>>');
+        console.log('Enviando account verificar alcada>>>>>>>>>>>>');
         console.log(this.account);
-        console.log('Enviando PricingObj >>>>>>>>>>>>');
+        console.log('Enviando PricingObj verificar alcada>>>>>>>>>>>>');
         console.log(this.pricingObj);
-        console.log('Enviando meios de captura >>>>>>>>>>>>');
+        console.log('Enviando meios de captura verificar alcada>>>>>>>>>>>>');
         console.log(this.produtos);
         // chamar verificar alçada
         this.loader++;
@@ -307,11 +351,14 @@ export class TaxasDashboardComponent {
                 });
             } 
             this.pricingObj = pricingObj;
-            this.populaMatrixNet();
         });
     }
 
     pedirAprovacao() {
+        this.pricingObj.Justificativa_de_Proposta__c = this.renegociacaoForm.get('justificativaProposta').value;
+        // console.log('JUSTIFICATIVA DE PROPOSTA fomr:');
+        // console.log(this.renegociacaoForm.get('justificativaProposta'));
+        console.log('JUSTIFICATIVA DE PROPOSTA: ' + this.pricingObj.Justificativa_de_Proposta__c);
         this.loader++;
         this._sfApi.pedirAprovacao(this.pricingObj, this.produtos, this.account).subscribe((pricingObj) => {
             this.loader--;
@@ -336,9 +383,30 @@ export class TaxasDashboardComponent {
         });
     }
 
-    descartar() {
+    async descartar() {
         this.loader++;
-        this._sfApi.desistir(this.pricingObj, this.produtos, this.account).subscribe((pricingObj) => {
+        if (this.userId != this.pricingObj.CreatedById) {
+            const { value: text } = await swal({
+                text: 'Qual o motivo do descarte?',
+                input: 'textarea',
+                inputPlaceholder: 'Rasgou a taxa',
+                showCancelButton: true,
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#14AA48'
+            })
+            if (text) {
+                console.log('Texto de descarte: ' + text);
+                this.pricingObj.Justificativa_de_descarte__c = text;
+            }
+        }
+        // LOG:
+        console.log('Enviando account descartar>>>>>>>>>>>>');
+        console.log(this.account);
+        console.log('Enviando PricingObj descartar>>>>>>>>>>>>');
+        console.log(this.pricingObj);
+        console.log('Enviando meios de captura descartar>>>>>>>>>>>>');
+        console.log(this.produtos);
+        this._sfApi.desistir(this.pricingObj, this.produtos, this.account).subscribe(pricingObj => {
             this.loader--;
             console.log('<<< pricingObj - descartar');
             console.log(pricingObj);
