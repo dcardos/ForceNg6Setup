@@ -24,13 +24,15 @@ export class TaxasDashboardComponent {
     taxasOferecidas: number[][];
     taxasNet: number[][];
     balizador: number[][];
+    ultimoDescarte: string;
     estruturaPricing = new Array<FrontPricing>();
     renegociacaoForm = this.fb.group({
         panelsBandeiras: this.fb.array([]),
         panelsProdutos: this.fb.array([]),
         tpvEstimado: ['', [Validators.pattern('^[0-9]+(.[0-9]{1,2})?$')]],
         qtdLoja: ['', [Validators.pattern('^[0-9]+$')]],
-        justificativaProposta: ['']
+        justificativaProposta: [''],
+        cobreConcorrencia: [false]
     });
 
     constructor(
@@ -65,7 +67,7 @@ export class TaxasDashboardComponent {
         if (this._pricingObj.CreatedDate) {
             this.dataCriacaoRenegociacao = new Date(this._pricingObj.CreatedDate);
         }
-        console.log('PRICING: ');
+        console.log('PRICING RECEBIDO: ');
         console.log(pricing);
         this.populaMatrixTaxaAtual();
         // this.populaMatrixCliente();
@@ -181,7 +183,15 @@ export class TaxasDashboardComponent {
         this.loader++;
         this._sfApi.getAllPricingObjectFromAccount(acctId).subscribe((pricingObjList) => {
             this.loader--;
+            console.log("All pricing objects (list): ");
+            console.log(pricingObjList);
             this.pricingObj = pricingObjList[0];
+            for (let i = pricingObjList.length-1; i >= 0; i--) {
+                if (pricingObjList[i].Justificativa_de_descarte__c) {
+                    this.ultimoDescarte = pricingObjList[i].Justificativa_de_descarte__c;
+                    break;
+                }
+            }
         });
         
         // método para pegar meios de captura
@@ -265,6 +275,8 @@ export class TaxasDashboardComponent {
         // taxas RAV
         this.pricingObj.Taxa_Automatica__c = (taxasRav.at(0).get('taxaOferecida').value) ? taxasRav.at(0).get('taxaOferecida').value : this.pricingObj.Atual_Taxa_Automatica__c;
         this.pricingObj.Taxa_Spot__c = (taxasRav.at(1).get('taxaOferecida').value) ? taxasRav.at(1).get('taxaOferecida').value : this.pricingObj.Atual_Taxa_Spot__c;
+        // cobrir concorrencia?
+        this.pricingObj.Cobrir_Concorrencia__c = this.renegociacaoForm.get('cobreConcorrencia').value;
         // Produtos - meios de captura
         if (this.produtos) {
             for(let i = 0; i < this.produtos.length; i++) {
@@ -481,97 +493,129 @@ export class TaxasDashboardComponent {
         });
     }
 
+    mostrarJustificativa() {
+        swal({
+            title: 'Última justificativa de descarte',
+            text: this.ultimoDescarte,
+            confirmButtonColor: '#14AA48'
+        });
+    }
+
+    mostraSwalConco() {
+        if (this.renegociacaoForm.get('cobreConcorrencia').value) {
+            swal({
+                title: 'Leia com atenção!',
+                text: "Você deverá anexar uma foto que comprove as taxas oferecidas pela concorrência após a aprovação desta renegociação!",
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#14AA48',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Li e anexarei quando aprovado!'
+            }).then((result) => {
+                if (result.value) {
+                    swal({
+                        text: 'Perfeito! Lembre-se, quando esta renegociação for aprovada, anexe o comprovante (foto) indo na conta do cliente no botão "publicar"!',
+                        type: 'info',
+                        confirmButtonColor: '#14AA48'
+                    })
+                } else {
+                    this.renegociacaoForm.patchValue({cobreConcorrencia: false});
+                }
+            })
+        }
+    }
+
     private populaMatrixTaxaAtual() {
         // setando taxas atuais - Visa/Master
-        this.taxasAtuais[0][0] = this.pricingObj.Atual_Debito__c;
-        this.taxasAtuais[0][1] = this.pricingObj.Atual_Credito_a_Vista__c;
-        this.taxasAtuais[0][2] = this.pricingObj.Atual_Credito_2_a_6__c;
-        this.taxasAtuais[0][3] = this.pricingObj.Atual_Credito_7_a_12__c;
+        this.taxasAtuais[0][0] = this._pricingObj.Atual_Debito__c;
+        this.taxasAtuais[0][1] = this._pricingObj.Atual_Credito_a_Vista__c;
+        this.taxasAtuais[0][2] = this._pricingObj.Atual_Credito_2_a_6__c;
+        this.taxasAtuais[0][3] = this._pricingObj.Atual_Credito_7_a_12__c;
         // setando taxas atuais - Elo
-        this.taxasAtuais[1][0] = this.pricingObj.Atual_Debito_EloSub__c;
-        this.taxasAtuais[1][1] = this.pricingObj.Atual_Credito_a_Vista_EloSub__c;
-        this.taxasAtuais[1][2] = this.pricingObj.Atual_Credito_2_a_6_EloSub__c;
-        this.taxasAtuais[1][3] = this.pricingObj.Atual_Credito_7_a_12_EloSub__c;
+        this.taxasAtuais[1][0] = this._pricingObj.Atual_Debito_EloSub__c;
+        this.taxasAtuais[1][1] = this._pricingObj.Atual_Credito_a_Vista_EloSub__c;
+        this.taxasAtuais[1][2] = this._pricingObj.Atual_Credito_2_a_6_EloSub__c;
+        this.taxasAtuais[1][3] = this._pricingObj.Atual_Credito_7_a_12_EloSub__c;
         // setando taxas atuais - Hiper
-        this.taxasAtuais[2][0] = this.pricingObj.Atual_credito_a_vista_hiper__c;
-        this.taxasAtuais[2][1] = this.pricingObj.Atual_credito_2_a_6_hiper__c;
-        this.taxasAtuais[2][2] = this.pricingObj.Atual_credito_7_a_12_hiper__c;
+        this.taxasAtuais[2][0] = this._pricingObj.Atual_credito_a_vista_hiper__c;
+        this.taxasAtuais[2][1] = this._pricingObj.Atual_credito_2_a_6_hiper__c;
+        this.taxasAtuais[2][2] = this._pricingObj.Atual_credito_7_a_12_hiper__c;
         // setando taxas atuais - Amex
-        this.taxasAtuais[3][0] = this.pricingObj.Atual_Credito_Vista_Amex__c;
-        this.taxasAtuais[3][1] = this.pricingObj.Atual_Credito_2_a_6_Amex__c;
-        this.taxasAtuais[3][2] = this.pricingObj.Atual_Credito_7_a_12_Amex__c;
+        this.taxasAtuais[3][0] = this._pricingObj.Atual_Credito_Vista_Amex__c;
+        this.taxasAtuais[3][1] = this._pricingObj.Atual_Credito_2_a_6_Amex__c;
+        this.taxasAtuais[3][2] = this._pricingObj.Atual_Credito_7_a_12_Amex__c;
         // setando taxas atuais RAV
-        this.taxasAtuais[4][0] = this.pricingObj.Atual_Taxa_Automatica__c;
-        this.taxasAtuais[4][1] = this.pricingObj.Atual_Taxa_Spot__c;
+        this.taxasAtuais[4][0] = this._pricingObj.Atual_Taxa_Automatica__c;
+        this.taxasAtuais[4][1] = this._pricingObj.Atual_Taxa_Spot__c;
     }
 
     private populaMatrixTaxaOferecida() {
         // setando taxas oferecidas - Visa/Master
-        this.taxasOferecidas[0][0] = this.pricingObj.Debito__c;
-        this.taxasOferecidas[0][1] = this.pricingObj.Credito_a_Vista__c;
-        this.taxasOferecidas[0][2] = this.pricingObj.Credito_2_a_6__c;
-        this.taxasOferecidas[0][3] = this.pricingObj.Credito_7_a_12__c;
+        this.taxasOferecidas[0][0] = this._pricingObj.Debito__c;
+        this.taxasOferecidas[0][1] = this._pricingObj.Credito_a_Vista__c;
+        this.taxasOferecidas[0][2] = this._pricingObj.Credito_2_a_6__c;
+        this.taxasOferecidas[0][3] = this._pricingObj.Credito_7_a_12__c;
         // setando taxas oferecidas - Elo
-        this.taxasOferecidas[1][0] = this.pricingObj.Debito_EloSub__c;
-        this.taxasOferecidas[1][1] = this.pricingObj.Credito_a_Vista_EloSub__c;
-        this.taxasOferecidas[1][2] = this.pricingObj.Credito_2_a_6_EloSub__c;
-        this.taxasOferecidas[1][3] = this.pricingObj.Credito_7_a_12_EloSub__c;
+        this.taxasOferecidas[1][0] = this._pricingObj.Debito_EloSub__c;
+        this.taxasOferecidas[1][1] = this._pricingObj.Credito_a_Vista_EloSub__c;
+        this.taxasOferecidas[1][2] = this._pricingObj.Credito_2_a_6_EloSub__c;
+        this.taxasOferecidas[1][3] = this._pricingObj.Credito_7_a_12_EloSub__c;
         // setando taxas oferecidas - Hiper
-        this.taxasOferecidas[2][0] = this.pricingObj.credito_a_vista_hiper__c;
-        this.taxasOferecidas[2][1] = this.pricingObj.credito_2_a_6_hiper__c;
-        this.taxasOferecidas[2][2] = this.pricingObj.credito_7_a_12_hiper__c;
+        this.taxasOferecidas[2][0] = this._pricingObj.credito_a_vista_hiper__c;
+        this.taxasOferecidas[2][1] = this._pricingObj.credito_2_a_6_hiper__c;
+        this.taxasOferecidas[2][2] = this._pricingObj.credito_7_a_12_hiper__c;
         // setando taxas oferecidas - Amex
-        this.taxasOferecidas[3][0] = this.pricingObj.Credito_Vista_Amex__c;
-        this.taxasOferecidas[3][1] = this.pricingObj.Credito_2_a_6_Amex__c;
-        this.taxasOferecidas[3][2] = this.pricingObj.Credito_7_a_12_Amex__c;
+        this.taxasOferecidas[3][0] = this._pricingObj.Credito_Vista_Amex__c;
+        this.taxasOferecidas[3][1] = this._pricingObj.Credito_2_a_6_Amex__c;
+        this.taxasOferecidas[3][2] = this._pricingObj.Credito_7_a_12_Amex__c;
         // setando taxas oferecidas RAV
-        this.taxasOferecidas[4][0] = this.pricingObj.Taxa_Automatica__c;
-        this.taxasOferecidas[4][1] = this.pricingObj.Taxa_Spot__c;
+        this.taxasOferecidas[4][0] = this._pricingObj.Taxa_Automatica__c;
+        this.taxasOferecidas[4][1] = this._pricingObj.Taxa_Spot__c;
     }
 
     private populaMatrixCliente() {
         // setando taxas pedidas - Visa/Master
-        this.taxasPedidas[0][0] = this.pricingObj.Cliente_Debito__c;
-        this.taxasPedidas[0][1] = this.pricingObj.Cliente_Credito_a_Vista_Master__c;
-        this.taxasPedidas[0][2] = this.pricingObj.Cliente_Credito_2_a_6_Master__c;
-        this.taxasPedidas[0][3] = this.pricingObj.Cliente_Credito_7_a_12_Master__c;
+        this.taxasPedidas[0][0] = this._pricingObj.Cliente_Debito__c;
+        this.taxasPedidas[0][1] = this._pricingObj.Cliente_Credito_a_Vista_Master__c;
+        this.taxasPedidas[0][2] = this._pricingObj.Cliente_Credito_2_a_6_Master__c;
+        this.taxasPedidas[0][3] = this._pricingObj.Cliente_Credito_7_a_12_Master__c;
         // setando taxas pedidas - Elo
-        this.taxasPedidas[1][0] = this.pricingObj.Cliente_Debito_EloSub__c;
-        this.taxasPedidas[1][1] = this.pricingObj.Cliente_Credito_a_Vista_EloSub__c;
-        this.taxasPedidas[1][2] = this.pricingObj.Cliente_Credito_2_a_6_EloSub__c;
-        this.taxasPedidas[1][3] = this.pricingObj.Cliente_Credito_7_a_12_EloSub__c;
+        this.taxasPedidas[1][0] = this._pricingObj.Cliente_Debito_EloSub__c;
+        this.taxasPedidas[1][1] = this._pricingObj.Cliente_Credito_a_Vista_EloSub__c;
+        this.taxasPedidas[1][2] = this._pricingObj.Cliente_Credito_2_a_6_EloSub__c;
+        this.taxasPedidas[1][3] = this._pricingObj.Cliente_Credito_7_a_12_EloSub__c;
         // setando taxas pedidas - Hiper
-        this.taxasPedidas[2][0] = this.pricingObj.Cliente_credito_a_vista_hiper__c;
-        this.taxasPedidas[2][1] = this.pricingObj.Cliente_credito_2_a_6_hiper__c;
-        this.taxasPedidas[2][2] = this.pricingObj.Cliente_credito_7_a_12_hiper__c;
+        this.taxasPedidas[2][0] = this._pricingObj.Cliente_credito_a_vista_hiper__c;
+        this.taxasPedidas[2][1] = this._pricingObj.Cliente_credito_2_a_6_hiper__c;
+        this.taxasPedidas[2][2] = this._pricingObj.Cliente_credito_7_a_12_hiper__c;
         // setando taxas pedidas - Amex
-        this.taxasPedidas[3][0] = this.pricingObj.Cliente_Credito_Vista_Amex__c;
-        this.taxasPedidas[3][1] = this.pricingObj.Cliente_Credito_2_a_6_Amex__c;
-        this.taxasPedidas[3][2] = this.pricingObj.Cliente_Credito_7_a_12_Amex__c;
+        this.taxasPedidas[3][0] = this._pricingObj.Cliente_Credito_Vista_Amex__c;
+        this.taxasPedidas[3][1] = this._pricingObj.Cliente_Credito_2_a_6_Amex__c;
+        this.taxasPedidas[3][2] = this._pricingObj.Cliente_Credito_7_a_12_Amex__c;
         // setando taxas pedidas RAV
-        this.taxasPedidas[4][0] = this.pricingObj.Cliente_Taxa_Automatica__c;
-        this.taxasPedidas[4][1] = this.pricingObj.Cliente_Taxa_Spot__c;
+        this.taxasPedidas[4][0] = this._pricingObj.Cliente_Taxa_Automatica__c;
+        this.taxasPedidas[4][1] = this._pricingObj.Cliente_Taxa_Spot__c;
     }
 
     private populaMatrixNet() {
         // net- Visa/Master
-        this.taxasNet[0][0] = this.pricingObj.API_NET_Total_Debit__c;
-        this.taxasNet[0][1] = this.pricingObj.API_NET_Total_Credit__c;
-        this.taxasNet[0][2] = this.pricingObj.API_NET_Total_Credit2x6__c;
-        this.taxasNet[0][3] = this.pricingObj.API_NET_Total_Credit7x12__c;
+        this.taxasNet[0][0] = this._pricingObj.API_NET_Total_Debit__c;
+        this.taxasNet[0][1] = this._pricingObj.API_NET_Total_Credit__c;
+        this.taxasNet[0][2] = this._pricingObj.API_NET_Total_Credit2x6__c;
+        this.taxasNet[0][3] = this._pricingObj.API_NET_Total_Credit7x12__c;
         // net - Elo
-        this.taxasNet[1][0] = this.pricingObj.API_Net_Debito_Elo__c;
-        this.taxasNet[1][1] = this.pricingObj.API_Net_Credito_Elo__c;
-        this.taxasNet[1][2] = this.pricingObj.API_Net_Credito_2x6_Elo__c;
-        this.taxasNet[1][3] = this.pricingObj.API_Net_Credito_7x12_Elo__c;
+        this.taxasNet[1][0] = this._pricingObj.API_Net_Debito_Elo__c;
+        this.taxasNet[1][1] = this._pricingObj.API_Net_Credito_Elo__c;
+        this.taxasNet[1][2] = this._pricingObj.API_Net_Credito_2x6_Elo__c;
+        this.taxasNet[1][3] = this._pricingObj.API_Net_Credito_7x12_Elo__c;
         // net - Hiper
-        this.taxasNet[2][0] = this.pricingObj.API_Net_Credito_Hiper__c;
-        this.taxasNet[2][1] = this.pricingObj.API_Net_Credito_2x6_hiper__c;
-        this.taxasNet[2][2] = this.pricingObj.API_Net_Credito_7x12_hiper__c;
+        this.taxasNet[2][0] = this._pricingObj.API_Net_Credito_Hiper__c;
+        this.taxasNet[2][1] = this._pricingObj.API_Net_Credito_2x6_hiper__c;
+        this.taxasNet[2][2] = this._pricingObj.API_Net_Credito_7x12_hiper__c;
         // net - Amex
-        this.taxasNet[3][0] = this.pricingObj.API_Net_Credito_Amex__c;
-        this.taxasNet[3][1] = this.pricingObj.API_Net_Credito_2x6_Amex__c;
-        this.taxasNet[3][2] = this.pricingObj.API_Net_Credito_7x12_Amex__c;
+        this.taxasNet[3][0] = this._pricingObj.API_Net_Credito_Amex__c;
+        this.taxasNet[3][1] = this._pricingObj.API_Net_Credito_2x6_Amex__c;
+        this.taxasNet[3][2] = this._pricingObj.API_Net_Credito_7x12_Amex__c;
         // net RAV
         this.taxasPedidas[4][0] = 0;
         this.taxasPedidas[4][1] = 0;
@@ -579,26 +623,26 @@ export class TaxasDashboardComponent {
 
     private populaBalizador() {
         // net- Visa/Master
-        this.balizador[0][0] = this.pricingObj.balizador_debit_card_tax_master__c;
-        this.balizador[0][1] = this.pricingObj.balizador_credit_card_tax_1x_master__c;
-        this.balizador[0][2] = this.pricingObj.balizador_credit_card_tax_2x_master__c;
-        this.balizador[0][3] = this.pricingObj.balizador_credit_card_tax_7x_master__c;
+        this.balizador[0][0] = this._pricingObj.balizador_debit_card_tax_master__c;
+        this.balizador[0][1] = this._pricingObj.balizador_credit_card_tax_1x_master__c;
+        this.balizador[0][2] = this._pricingObj.balizador_credit_card_tax_2x_master__c;
+        this.balizador[0][3] = this._pricingObj.balizador_credit_card_tax_7x_master__c;
         // net - Elo
-        this.balizador[1][0] = this.pricingObj.balizador_debit_card_tax_elo__c;
-        this.balizador[1][1] = this.pricingObj.balizador_credit_card_tax_1x_elo__c;
-        this.balizador[1][2] = this.pricingObj.balizador_credit_card_tax_2x_elo__c;
-        this.balizador[1][3] = this.pricingObj.balizador_credit_card_tax_7x_elo__c;
+        this.balizador[1][0] = this._pricingObj.balizador_debit_card_tax_elo__c;
+        this.balizador[1][1] = this._pricingObj.balizador_credit_card_tax_1x_elo__c;
+        this.balizador[1][2] = this._pricingObj.balizador_credit_card_tax_2x_elo__c;
+        this.balizador[1][3] = this._pricingObj.balizador_credit_card_tax_7x_elo__c;
         // net - Hiper
-        this.balizador[2][0] = this.pricingObj.balizador_credit_card_tax_1x_hiper__c;
-        this.balizador[2][1] = this.pricingObj.balizador_credit_card_tax_2x_hiper__c;
-        this.balizador[2][2] = this.pricingObj.balizador_credit_card_tax_7x_hiper__c;
+        this.balizador[2][0] = this._pricingObj.balizador_credit_card_tax_1x_hiper__c;
+        this.balizador[2][1] = this._pricingObj.balizador_credit_card_tax_2x_hiper__c;
+        this.balizador[2][2] = this._pricingObj.balizador_credit_card_tax_7x_hiper__c;
         // net - Amex
-        this.balizador[3][0] = this.pricingObj.balizador_credit_card_tax_1x_amex__c;
-        this.balizador[3][1] = this.pricingObj.balizador_credit_card_tax_2x_amex__c;
-        this.balizador[3][2] = this.pricingObj.balizador_credit_card_tax_7x_amex__c;
+        this.balizador[3][0] = this._pricingObj.balizador_credit_card_tax_1x_amex__c;
+        this.balizador[3][1] = this._pricingObj.balizador_credit_card_tax_2x_amex__c;
+        this.balizador[3][2] = this._pricingObj.balizador_credit_card_tax_7x_amex__c;
         // net RAV
-        this.balizador[4][0] = this.pricingObj.balizador_rav_tax_auto__c;
-        this.balizador[4][1] = this.pricingObj.balizador_rav_tax_spot__c;
+        this.balizador[4][0] = this._pricingObj.balizador_rav_tax_auto__c;
+        this.balizador[4][1] = this._pricingObj.balizador_rav_tax_spot__c;
     }
 
     private verificaSeMudouAlgumaCondicao(): boolean {

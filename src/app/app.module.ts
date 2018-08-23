@@ -6,7 +6,7 @@ import { StaticPathPipe } from './pipes/static-path.pipe';
 import { SalesforceApiService } from './sf-api-service';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MatCardModule, MatGridListModule, MatToolbarModule, MatButtonModule, MatSidenavModule, MatIconModule, MatListModule, MatMenuModule, MatExpansionPanel, MatExpansionModule, MatFormFieldModule, MatInputModule } from '@angular/material';
+import { MatCardModule, MatGridListModule, MatToolbarModule, MatButtonModule, MatSidenavModule, MatIconModule, MatListModule, MatMenuModule, MatExpansionPanel, MatExpansionModule, MatFormFieldModule, MatInputModule, MatCheckboxModule } from '@angular/material';
 import { MainNavComponent } from './main-nav.component';
 import { LayoutModule } from '@angular/cdk/layout';
 import { TaxasDashboardComponent } from './taxas-dashboard/taxas-dashboard.component';
@@ -36,6 +36,7 @@ registerLocaleData(localePt);
         MatExpansionModule,
         MatFormFieldModule,
         MatInputModule,
+        MatCheckboxModule,
         ReactiveFormsModule
     ],
     providers: [
