@@ -5,22 +5,24 @@
     <form (ngSubmit)="onSubmit()" [formGroup]="renegociacaoForm" autocomplete="off">
         <div class="myCardCopy">
             <mat-grid-list [cols]="breakpoint" rowHeight="3.5rem">
-                <mat-grid-tile [colspan]="breakpoint" rowspan="2">
-                    <h1>{{account.Name}}</h1>
+                <mat-grid-tile [colspan]="breakpoint" rowspan="3">
+                    <div>
+                        <h1 style="margin-bottom: .5rem; margin-top: 0rem;">{{account.Name}}</h1>
+                        <p *ngIf="pricingObj?.Pricing_Status__c != 'Novo'" style="font-size: 0.8rem; margin-bottom: .5em;">Renegociação aberta por: {{usuarioCriador?.Name}} ({{usuarioCriador?.Email}})</p>
+                        <p *ngIf="pricingObj?.Pricing_Status__c != 'Novo'" style="font-size: 0.8rem; text-align: center;">Última atualização: {{dataCriacaoRenegociacao | date:'dd MMMM'}}</p>
+                    </div>
                 </mat-grid-tile>
-                <mat-grid-tile colspan="1">
-                    <p>Status: {{pricingObj.Pricing_Status__c}}</p>
-                </mat-grid-tile>
-                <mat-grid-tile colspan="1" *ngIf="pricingObj.Pricing_Status__c === 'Pediu Aprovação' || breakpoint === 3">
-                    <p *ngIf="pricingObj.Pricing_Status__c === 'Pediu Aprovação'">Email do aprovador: {{pricingObj.email_aprovador__c}}</p>
-                </mat-grid-tile>
-                <mat-grid-tile colspan="1">
-                    <p>Solicitante: {{pricingObj.CreatedById || userId}}</p>
+                <mat-grid-tile [colspan]="breakpoint" *ngIf="pricingObj?.Pricing_Status__c != 'Novo' && (userId === pricingObj?.OwnerId || userId === pricingObj?.CreatedById)">
+                    <p *ngIf="pricingObj?.Pricing_Status__c === 'Sem Alçada' && pricingObj?.OwnerId === userId">Renegociação aguardando sua solicitação de aprovação</p>
+                    <p *ngIf="pricingObj?.OwnerId != userId">Renegociação aguardando análise de {{usuarioDono?.Name}} ({{pricingObj?.email_aprovador__c}})</p>
+                    <p *ngIf="pricingObj?.Pricing_Status__c === 'Pediu Aprovação' && pricingObj?.OwnerId === userId">Renegociação aguardando sua análise</p>
+                    <p *ngIf="pricingObj?.Pricing_Status__c === 'Tem Alçada' && pricingObj?.OwnerId === userId">Renegociação aguardando sua aprovação</p>
+                    <p *ngIf="pricingObj?.Pricing_Status__c === 'Aguardando Cliente'">Renegociação aguardando confirmação junto ao cliente</p>
                 </mat-grid-tile>
                 <mat-grid-tile [colspan]="breakpoint === 1 ? 1 : 2" rowspan="2">
                     <mat-form-field style="width: 10rem;" appearance="outline">
                         <mat-label>TPV Estimado</mat-label>
-                        <input matInput type="number" placeholder="0" formControlName="tpvEstimado" required [readonly]="pricingObj.Pricing_Status__c === 'Novo' ? 'false' : 'true'">
+                        <input matInput type="number" placeholder="0" formControlName="tpvEstimado" required [readonly]="pricingObj?.Pricing_Status__c === 'Novo' ? 'false' : 'true'">
                         <span matPrefix>R$&nbsp;</span>
                         <mat-error>Valor inválido</mat-error>
                     </mat-form-field>
@@ -28,16 +30,25 @@
                 <mat-grid-tile colspan="1" rowspan="2">
                     <mat-form-field style="width: 6rem;" appearance="outline">
                         <mat-label># lojas</mat-label>
-                        <input matInput type="number" placeholder="0" formControlName="qtdLoja" required [readonly]="pricingObj.Pricing_Status__c === 'Novo' ? 'false' : 'true'">
+                        <input matInput type="number" placeholder="0" formControlName="qtdLoja" required [readonly]="pricingObj?.Pricing_Status__c === 'Novo' ? 'false' : 'true'">
                         <mat-error>Valor inválido</mat-error>
                     </mat-form-field>
                 </mat-grid-tile>
-                <mat-grid-tile [colspan]="breakpoint">
+                <!-- <mat-grid-tile [colspan]="breakpoint">
                     <p style="font-size: .6rem;">UserId: {{userId}}</p>
-                    <p style="font-size: .6rem;">OnwerId: {{pricingObj.OwnerId}}</p>
-                    <p style="font-size: .6rem;">CreatedById: {{pricingObj.CreatedById}}</p>
+                    <p style="font-size: .6rem;">OnwerId: {{pricingObj?.OwnerId}}</p>
+                    <p style="font-size: .6rem;">CreatedById: {{pricingObj?.CreatedById}}</p>
+                </mat-grid-tile> -->
+                <mat-grid-tile [colspan]="breakpoint" *ngIf="pricingObj?.Pricing_Status__c === 'Novo'">
+                    <mat-checkbox formControlName="cobreConcorrencia" (change)="mostraSwalConco()">Cobrir taxa da concorrência</mat-checkbox>
                 </mat-grid-tile>
-            </mat-grid-list>
+                <mat-grid-tile [colspan]="breakpoint" *ngIf="pricingObj?.Pricing_Status__c != 'Novo' && pricingObj?.Cobrir_Concorrencia__c">
+                    <div>
+                        <p>Esta renegociação cobre a taxa da concorrência!</p>
+                        <p>Será necessário um comprovante!</p>
+                    </div>
+                </mat-grid-tile>
+            </mat-grid-list> 
         </div>
         <div style="margin: 1rem"></div>
         <div formArrayName="panelsBandeiras">
@@ -55,32 +66,41 @@
                     <div [formGroupName]="i">
                         <mat-list>
                             <div formArrayName="secoes" *ngFor="let secao of panel.tituloSecoes; let j=index;">
-                                <mat-list-item>{{secao}}</mat-list-item>
+                                <mat-list-item>{{secao}} - médio rota: {{balizador[i][j] | number:'1.2-2'}}%</mat-list-item>
                                 <mat-divider></mat-divider>
                                 <div [formGroupName]="j">
                                     <mat-grid-list cols="3" rowHeight="6rem">
                                         <mat-grid-tile colspan="1">
-                                            <mat-form-field style="width: 6rem;" appearance="outline">
+                                            <!-- <mat-form-field style="width: 6rem;" appearance="outline">
                                                 <mat-label>Atual</mat-label>
                                                 <input [value]="taxasAtuais[i][j] | number:'1.2-2'" matInput type="number" readonly placeholder="Taxa Atual" formControlName="taxaAtual">
                                                 <span matSuffix>%</span>
-                                            </mat-form-field>
+                                            </mat-form-field> -->
+                                            Atual: {{taxasAtuais[i][j] | number:'1.2-2'}}%
                                         </mat-grid-tile>
-                                        <mat-grid-tile colspan="1">
+                                        <!-- <mat-grid-tile colspan="1">
                                             <mat-form-field style="width: 6rem;" appearance="outline">
                                                 <mat-label>Pedida</mat-label>
-                                                <input step="0.01" matInput type="number" placeholder="Cliente pediu" formControlName="clientePediu" [readonly]="pricingObj.Pricing_Status__c === 'Novo' ? 'false' : 'true'">
+                                                <input step="0.01" matInput type="number" placeholder="Cliente pediu" formControlName="clientePediu" [readonly]="pricingObj?.Pricing_Status__c === 'Novo' ? 'false' : 'true'">
                                                 <span matSuffix>%</span>
                                                 <mat-error>Taxa inválida</mat-error>
                                             </mat-form-field>
-                                        </mat-grid-tile>
+                                        </mat-grid-tile> -->
                                         <mat-grid-tile colspan="1">   
                                             <mat-form-field style="width: 6rem;" appearance="outline">
                                                 <mat-label>Oferecida</mat-label>
-                                                <input step="0.01" matInput type="number" placeholder="Oferecida" formControlName="taxaOferecida" [readonly]="pricingObj.Pricing_Status__c === 'Novo' ? 'false' : 'true'">
+                                                <input step="0.01" matInput type="number" placeholder="Oferecida" formControlName="taxaOferecida" [readonly]="pricingObj?.Pricing_Status__c === 'Novo' ? 'false' : 'true'">
                                                 <span matSuffix>%</span>
                                                 <mat-error>Taxa inválida</mat-error>
                                             </mat-form-field>
+                                        </mat-grid-tile>
+                                        <mat-grid-tile colspan="1" *ngIf="i < 4 && pricingObj?.Pricing_Status__c != 'Novo'">
+                                            <!-- <mat-form-field style="width: 6rem;" appearance="outline">
+                                                <mat-label>Net</mat-label>
+                                                <input matInput type="number" placeholder="Net" formControlName="valorNet" readonly [value]="taxasNet[i][j] | number:'1.2-2'">
+                                                <span matSuffix>%</span>
+                                            </mat-form-field> -->
+                                            Net: {{taxasNet[i][j] | number:'1.2-2'}}%
                                         </mat-grid-tile>
                                     </mat-grid-list>
                                 </div>                                
@@ -97,33 +117,34 @@
                 <mat-expansion-panel *ngFor="let produto of produtos; let k=index;">
                     <mat-expansion-panel-header>
                         <mat-panel-title>
-                            Taxa {{produto.Meio_de_Captura__c}} - {{produto.captureMethodId__c}} - {{produto.Tecnologia__c}}
+                            Aluguel {{produto.Meio_de_Captura__c}} - {{produto.captureMethodId__c}} - {{produto.Tecnologia__c}}
                         </mat-panel-title>
                     </mat-expansion-panel-header>
                     <mat-list>
                         <div [formGroupName]="k">
                             <mat-list-item>Aluguel</mat-list-item>
                             <mat-divider></mat-divider>
-                            <mat-grid-list cols="3" rowHeight="5rem">
+                            <mat-grid-list cols="2" rowHeight="5rem">
                                 <mat-grid-tile colspan="1">
-                                    <mat-form-field style="width: 6rem;" appearance="outline">
+                                    <!-- <mat-form-field style="width: 6rem;" appearance="outline">
                                         <mat-label>Atual</mat-label>
                                         <input [value]="produto.Atual_Aluguel__c | number:'1.2-2'" matInput type="number" readonly placeholder="Aluguel Atual" formControlName="aluguelAtual">
                                         <span matPrefix>R$&nbsp;</span>
-                                    </mat-form-field>
+                                    </mat-form-field> -->
+                                     Atual: R$ {{produto.Atual_Aluguel__c | number:'1.2-2'}}
                                 </mat-grid-tile>
-                                <mat-grid-tile colspan="1">
+                                <!-- <mat-grid-tile colspan="1">
                                     <mat-form-field style="width: 6rem;" appearance="outline">
                                         <mat-label>Pedido</mat-label>
-                                        <input step="0.01" matInput type="number" placeholder="Cliente Pediu" formControlName="clientePediuAluguel" [readonly]="pricingObj.Pricing_Status__c === 'Novo' ? 'false' : 'true'">
+                                        <input step="0.01" matInput type="number" placeholder="Cliente Pediu" formControlName="clientePediuAluguel" [readonly]="pricingObj?.Pricing_Status__c === 'Novo' ? 'false' : 'true'">
                                         <span matPrefix>R$&nbsp;</span>
                                         <mat-error>Aluguel inválido</mat-error>
                                     </mat-form-field>
-                                </mat-grid-tile>
+                                </mat-grid-tile> -->
                                 <mat-grid-tile colspan="1">
                                     <mat-form-field style="width: 6rem;" appearance="outline">
                                         <mat-label>Oferecido</mat-label>
-                                        <input step="0.01" matInput type="number" placeholder="Oferecido" formControlName="aluguelOferecido" [readonly]="pricingObj.Pricing_Status__c === 'Novo' ? 'false' : 'true'">
+                                        <input step="0.01" matInput type="number" placeholder="Oferecido" formControlName="aluguelOferecido" [readonly]="pricingObj?.Pricing_Status__c === 'Novo' ? 'false' : 'true'">
                                         <span matPrefix>R$&nbsp;</span>
                                         <mat-error>Aluguel inválido</mat-error>
                                     </mat-form-field>
@@ -131,26 +152,26 @@
                             </mat-grid-list>
                             <mat-list-item>Dias de isenção</mat-list-item>
                             <mat-divider></mat-divider>
-                            <mat-grid-list cols="3" rowHeight="5rem">
+                            <mat-grid-list cols="2" rowHeight="5rem">
                                 <!-- <mat-grid-tile colspan="1">
                                     <mat-form-field>
                                         <input [value]="produto.Atual_Dias_de_Insecao__c | number:'1.0-0'" matInput type="number" readonly placeholder="Dias de isenção atual" formControlName="diaIsencaoAtual">
                                     </mat-form-field>
                                 </mat-grid-tile> -->
                                 <mat-grid-tile colspan="1">
-                                    -
+                                    <p>-</p>
                                 </mat-grid-tile>
-                                <mat-grid-tile colspan="1">
+                                <!-- <mat-grid-tile colspan="1">
                                     <mat-form-field style="width: 6rem;" appearance="outline">
                                         <mat-label>Pedido</mat-label>
                                         <input step="0.01" matInput type="number" placeholder="Cliente Pediu" formControlName="clientePediuIsencao">
                                         <mat-error>Valor inválido</mat-error>
                                     </mat-form-field>
-                                </mat-grid-tile>
+                                </mat-grid-tile> -->
                                 <mat-grid-tile colspan="1">
                                     <mat-form-field style="width: 6rem;" appearance="outline">
                                         <mat-label>Oferecido</mat-label>
-                                        <input matInput type="number" placeholder="Oferecido" formControlName="diasIsencaoOferecidos" [readonly]="pricingObj.Pricing_Status__c === 'Novo' ? 'false' : 'true'">
+                                        <input matInput type="number" placeholder="Oferecido" formControlName="diasIsencaoOferecidos" [readonly]="pricingObj?.Pricing_Status__c === 'Novo' ? 'false' : 'true'">
                                         <mat-error>Valor inválido</mat-error>
                                     </mat-form-field>
                                 </mat-grid-tile>
@@ -160,25 +181,38 @@
                 </mat-expansion-panel>
             </mat-accordion>
         </div>
+        <div class="myCardCopy" style="margin-top: 1rem;" *ngIf="pricingObj?.Pricing_Status__c === 'Sem Alçada' || (pricingObj?.Pricing_Status__c === 'Pediu Aprovação' && pricingObj?.OwnerId === userId)">
+            <mat-grid-list [cols]="breakpoint" rowHeight="3.5rem">
+                <mat-grid-tile [colspan]="breakpoint" rowspan="2">
+                    <mat-form-field style="width: 90%;">
+                        <mat-label>Justificativa de proposta</mat-label>
+                        <textarea matInput formControlName="justificativaProposta"></textarea>
+                    </mat-form-field>
+                </mat-grid-tile>
+            </mat-grid-list>
+        </div>
         <div style="margin: 1rem;"></div>
         <mat-grid-list [cols]="breakpoint" rowHeight="5rem">
-            <mat-grid-tile colspan="1" *ngIf="pricingObj.Pricing_Status__c === 'Novo' || (pricingObj.Pricing_Status__c === 'Pediu Aprovação' && userId === pricingObj.OwnerId)">
+            <mat-grid-tile colspan="1" *ngIf="pricingObj?.Pricing_Status__c === 'Novo' || (pricingObj?.Pricing_Status__c === 'Pediu Aprovação' && userId === pricingObj?.OwnerId)">
                 <button mat-raised-button type="submit" [disabled]="!renegociacaoForm.valid">Verificar alçada</button>
             </mat-grid-tile>
-            <mat-grid-tile colspan="1" *ngIf="pricingObj.Pricing_Status__c === 'Sem Alçada' && (userId === pricingObj.OwnerId || userId === pricingObj.CreatedById)">
+            <mat-grid-tile colspan="1" *ngIf="pricingObj?.Pricing_Status__c === 'Sem Alçada' && (userId === pricingObj?.OwnerId || userId === pricingObj?.CreatedById)">
                 <button mat-raised-button type=button (click)="pedirAprovacao()">Pedir Aprovação</button>
             </mat-grid-tile>
-            <mat-grid-tile colspan="1" *ngIf="pricingObj.Pricing_Status__c === 'Tem Alçada' && userId === pricingObj.OwnerId">
+            <mat-grid-tile colspan="1" *ngIf="pricingObj?.Pricing_Status__c === 'Tem Alçada' && userId === pricingObj?.OwnerId">
                 <button mat-raised-button type=button (click)="aprovar()">Aprovar</button>
             </mat-grid-tile>
-            <mat-grid-tile colspan="1" *ngIf="pricingObj.Pricing_Status__c === 'Aguardando Cliente' && userId === pricingObj.OwnerId">
+            <mat-grid-tile colspan="1" *ngIf="pricingObj?.Pricing_Status__c === 'Aguardando Cliente' && userId === pricingObj?.OwnerId">
                 <button mat-raised-button type=button (click)="clienteAprovou()">Ok do Cliente</button>
             </mat-grid-tile>
-            <mat-grid-tile colspan="1" *ngIf="pricingObj.Pricing_Status__c != 'Novo' && pricingObj.Pricing_Status__c != 'Credenciado'">
+            <mat-grid-tile colspan="1" *ngIf="pricingObj?.Pricing_Status__c != 'Novo' && pricingObj?.Pricing_Status__c != 'Credenciado'">
                 <button mat-raised-button type=button (click)="descartar()">Descartar</button>
             </mat-grid-tile>
+            <mat-grid-tile colspan="1" *ngIf="ultimoDescarte">
+                <button mat-raised-button type="button" (click)="mostrarJustificativa()">Justificativa Último Descarte</button>
+            </mat-grid-tile>
         </mat-grid-list>
-        <h3>Botões abaixo sempre aparecem - debug</h3>
+        <!-- <h3>Botões abaixo sempre aparecem - debug</h3>
         <mat-divider></mat-divider>
         <mat-grid-list [cols]="breakpoint" rowHeight="5rem">
             <mat-grid-tile colspan="1">
@@ -197,14 +231,14 @@
                 <button mat-raised-button type=button (click)="clienteAprovou()">Ok do Cliente</button>
             </mat-grid-tile>
             <mat-grid-tile colspan="1">
-                <button mat-raised-button type=button (click)="userId = pricingObj.OwnerId">Virar Owner</button>
+                <button mat-raised-button type=button (click)="userId = pricingObj?.OwnerId">Virar Owner</button>
             </mat-grid-tile>
             <mat-grid-tile colspan="1">
-                <button mat-raised-button type=button (click)="userId = pricingObj.CreatedById">Virar Criador</button>
+                <button mat-raised-button type=button (click)="userId = pricingObj?.CreatedById">Virar Criador</button>
             </mat-grid-tile>
             <mat-grid-tile colspan="1">
                 <button mat-raised-button type=button (click)="userId = 'xxx123'">Virar Outro</button>
             </mat-grid-tile>
-        </mat-grid-list>
+        </mat-grid-list> -->
     </form>
 </div>
