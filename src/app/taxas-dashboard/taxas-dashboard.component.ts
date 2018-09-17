@@ -16,6 +16,7 @@ export class TaxasDashboardComponent {
     userId: string;
     usuarioDono: Usuario;
     usuarioCriador: Usuario;
+    usuarioAtual: Usuario;
     _pricingObj: PricingObject;
     account = new AccountSF;
     produtos: Produto[];
@@ -106,15 +107,14 @@ export class TaxasDashboardComponent {
         }
         // pegando usuário criador da negociação
         if (this.pricingObj.CreatedById) {
-            console.log("Buscando pricing criador com id: " + this.pricingObj.CreatedById);
+            // console.log("Buscando pricing criador com id: " + this.pricingObj.CreatedById);
             this._sfApi.userInfoById(this.pricingObj.CreatedById).subscribe(usuario => {
-                this.usuarioCriador = usuario;
+                // console.log(usuario);
+                this.usuarioCriador = new Usuario(usuario);
             });
         } else if (this.userId){
-            console.log("Buscando usuario criador com id: " + this.userId);
-            this._sfApi.userInfoById(this.userId).subscribe(usuario => {
-                this.usuarioCriador = usuario;
-            });
+            // console.log("Buscando usuario criador com id: " + this.userId);
+            this.usuarioCriador = this.usuarioAtual;
         }
     }
 
@@ -178,6 +178,10 @@ export class TaxasDashboardComponent {
             });
             return;
         }
+        // pegando info do usuário logado
+        this._sfApi.userInfoById(this.userId).subscribe(usuario => {
+            this.usuarioAtual = new Usuario(usuario);
+        });
         // pegar a conta
         this.loader++;
         this._sfApi.getAccountInfos(acctId).subscribe((account) => {
@@ -678,5 +682,17 @@ export class TaxasDashboardComponent {
             }
         })
         return flagMudou;
+    }
+
+    contraProposta() {
+        this.pricingObj.Pricing_Status__c = 'Novo';
+        swal({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            type: 'info',
+            title: 'Taxas editáveis para contra proposta'
+        });
     }
 }

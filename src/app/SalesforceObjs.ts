@@ -113,8 +113,17 @@ export class PricingObject {
 }
 
 export class Usuario {
-    Name: string;
-    Email: string;
+    name: string;
+    email: string;
+    profile: string;
+    isAdmin: boolean;
+
+    constructor(json: any) {
+        this.name = json.Name;
+        this.email = json.Email;
+        this.profile = json.Profile.Name;
+        this.isAdmin = this.profile === "System Administrator";  
+    }
 }
 
 export class Produto {
