@@ -64,6 +64,14 @@ export class TaxasDashboardComponent {
     
     public set pricingObj(pricing : PricingObject) {
         this._pricingObj = pricing;
+        if (this.pricingObj.errorNewPricing__c && this.pricingObj.errorNewPricing__c.length > 0) {
+            swal({
+                title: 'Atenção',
+                text: 'Ocorreu um erro. Mensagem do servidor: ' + this.pricingObj.errorNewPricing__c,
+                type: 'warning',
+                confirmButtonColor: '#14AA48'
+            });
+        }
         if (this._pricingObj.CreatedDate) {
             this.dataCriacaoRenegociacao = new Date(this._pricingObj.CreatedDate);
         }

@@ -91,6 +91,7 @@ export class PricingObject {
     Debito_EloSub__c: number;
     Debito__c: number;
     email_aprovador__c: string;
+    errorNewPricing__c: string;
     Id: string;
     Justificativa_de_descarte__c: string;
     Justificativa_de_Proposta__c: string;
