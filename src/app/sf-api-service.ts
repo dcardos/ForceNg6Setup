@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Observable } from "../../node_modules/rxjs";
 import { PricingObject, Produto, AccountSF, Usuario } from "./SalesforceObjs";
+import swal from "sweetalert2";
 
 declare var getSfApiWrapper : () => DataApi;
 
@@ -11,6 +12,9 @@ export interface ApiStatus {
     code: string;
     message: string;
     method?: string;
+    action?: string;
+    where?: string;
+    data?: string;
 }
 
 //Callback function for the API call
@@ -48,6 +52,12 @@ class ApiObservableBuilder<T> {
 
         if (!(status.statusCode >= 200 && status.statusCode <= 302)) {
             this.observer.error("Error response from api: " + status.statusCode + " " + JSON.stringify(status));
+            swal({
+                title: 'Erro ' + status.statusCode,
+                html: 'Resposta do servidor: ' + status.message + '<br>Classe: ' + status.action + '<br>Método: ' + status.method,
+                type: 'error',
+                confirmButtonColor: '#14AA48'
+            });
         } else {
             let result : any = resp;
             if (typeof result === 'string') {

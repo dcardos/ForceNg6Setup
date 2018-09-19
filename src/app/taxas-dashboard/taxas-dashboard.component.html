@@ -181,6 +181,17 @@
                 </mat-expansion-panel>
             </mat-accordion>
         </div>
+        <!-- Tabela depois de simulado pricing -->
+        <!-- <div *ngIf="pricingObj?.Pricing_Status__c != 'Novo'">
+            <table mat-table [dataSource]="data" class="mat-elevation-z8">
+                <ng-container [matColumnDef]="column" *ngFor="let column of displayedColumns">
+                    <th mat-header-cell *matHeaderCellDef> {{column}} </th>
+                    <td mat-cell *matCellDef="let element"> {{element[column]}} </td>
+                </ng-container>      
+                <tr mat-header-row *matHeaderRowDef="columnsToDisplay"></tr>
+                <tr mat-row *matRowDef="let row; columns: columnsToDisplay;"></tr>
+            </table>
+        </div> -->
         <div class="myCardCopy" style="margin-top: 1rem;" *ngIf="pricingObj?.Pricing_Status__c === 'Sem Alçada' || (pricingObj?.Pricing_Status__c === 'Pediu Aprovação' && pricingObj?.OwnerId === userId)">
             <mat-grid-list [cols]="breakpoint" rowHeight="3.5rem">
                 <mat-grid-tile [colspan]="breakpoint" rowspan="2">
@@ -205,15 +216,16 @@
             <mat-grid-tile colspan="1" *ngIf="pricingObj?.Pricing_Status__c === 'Aguardando Cliente' && userId === pricingObj?.OwnerId">
                 <button mat-raised-button type=button (click)="clienteAprovou()">Ok do Cliente</button>
             </mat-grid-tile>
+            <mat-grid-tile colspan="1" *ngIf="pricingObj?.Pricing_Status__c === 'Pediu Aprovação' && userId === pricingObj?.OwnerId">
+                    <button mat-raised-button type="button" (click)="contraProposta()">Contra Proposta</button>
+                </mat-grid-tile>
             <mat-grid-tile colspan="1" *ngIf="pricingObj?.Pricing_Status__c != 'Novo' && pricingObj?.Pricing_Status__c != 'Credenciado'">
                 <button mat-raised-button type=button (click)="descartar()">Descartar</button>
             </mat-grid-tile>
             <mat-grid-tile colspan="1" *ngIf="ultimoDescarte">
                 <button mat-raised-button type="button" (click)="mostrarJustificativa()">Justificativa Último Descarte</button>
             </mat-grid-tile>
-            <mat-grid-tile colspan="1" *ngIf="pricingObj?.Pricing_Status__c === 'Pediu Aprovação' && userId === pricingObj?.OwnerId">
-                <button mat-raised-button type="button" (click)="contraProposta()">Contra Proposta</button>
-            </mat-grid-tile>
+            
         </mat-grid-list>
         <div *ngIf="usuarioAtual?.isAdmin">
             <h3>Botões abaixo para administradores - use para debug apenas, muita CAUTELA</h3>

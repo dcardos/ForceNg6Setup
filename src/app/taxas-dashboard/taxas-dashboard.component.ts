@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { SalesforceApiService } from '../sf-api-service';
-import { PricingObject, Produto, FrontPricing, AccountSF, Usuario } from '../SalesforceObjs';
+import { PricingObject, Produto, FrontPricing, AccountSF, Usuario, LinhaTabelaReneg } from '../SalesforceObjs';
 import swal from 'sweetalert2';
 import { FormBuilder, FormArray, Validators } from '@angular/forms';
 
@@ -35,6 +35,7 @@ export class TaxasDashboardComponent {
         justificativaProposta: [''],
         cobreConcorrencia: [false]
     });
+    tabelaReneg: LinhaTabelaReneg[];
 
     constructor(
         private fb: FormBuilder,
@@ -204,6 +205,7 @@ export class TaxasDashboardComponent {
                     break;
                 }
             }
+            if (this.pricingObj.Pricing_Status__c !== 'Novo') this.montaTabela(pricingObjList);
         });
         
         // método para pegar meios de captura
@@ -694,5 +696,132 @@ export class TaxasDashboardComponent {
             type: 'info',
             title: 'Taxas editáveis para contra proposta'
         });
+    }
+
+    // a principio somente bandeiras, ja sabemos que tem ao menos duas colunas (!= novo)
+    montaTabela(listaPricing: PricingObject[]) {
+        // histórico desta proposta
+        let propostaHis = new Array<PricingObject>();
+        for (let i = listaPricing.length-1; i >= 0; i--) {
+            propostaHis.push(listaPricing[i]);
+            if (listaPricing[i].Pricing_Status__c === 'Novo') {
+                break;
+            }
+        }
+
+        console.log("Historico: ");
+        console.log(propostaHis);
+
+        // adicionando linhas e colunas à tabela
+        let propostaAnterior = propostaHis.pop();
+
+        
+        console.log("propostaAnterior (pop):");
+        console.log(propostaAnterior);
+
+        let tabela = [];
+        let linha = 0;
+        let col = 0;
+        let taxasPropostas = this.transformToArray(propostaAnterior);
+
+        console.log("propostaAnterior taxas array:");
+        console.log(taxasPropostas);
+
+        // coluna inicial (taxa anterior)
+        console.log("Front");
+        console.log(this.estruturaPricing);
+        for (let i=0; i<this.taxasAtuais.length; i++) {
+            tabela[linha] = [];
+            tabela[linha][0] = this.estruturaPricing[i].tituloPanel;
+            for (let j=0; j<this.taxasAtuais[i].length; j++) {
+                console.log("this.taxasAtuais[" + i + "][" + j + "]= " + this.taxasAtuais[i][j]);
+                console.log("taxasPropostas[" + i + "][" + j + "]= " + taxasPropostas[i][j]);
+                console.log("diff= " + (this.taxasAtuais[i][j] - taxasPropostas[i][j]));
+                if (this.taxasAtuais[i][j] - taxasPropostas[i][j] != 0) {
+                    tabela[linha][0] += ' ' + this.estruturaPricing[i].tituloSecoes[j];
+                    tabela[linha][1] = this.taxasAtuais[i][j];
+                    tabela[linha++][2] = taxasPropostas[i][j];
+                }
+            }
+        }
+        console.log("tabela");
+        console.log(tabela);
+
+        // while (propostaHis.length > 0) {
+        //     let colunaDePricing = propostaHis.pop();
+        //     let diferencas = this.calculaDifTaxas(propostaAnterior, colunaDePricing);
+        //     for (let i=0; i<diferencas.length; i++) {
+        //         for (let j=0; j<diferencas[i].length; j++) {
+        //             if (diferencas[i][j] != 0) {
+        //                 tabela[0] = this.estruturaPricing[i].tituloPanel;
+        //                 linha[1] = diferencas[i][j];
+        //             }
+        //         }
+        //     }
+        // }
+    }
+
+    private calculaDifTaxas(pricing1: PricingObject, pricing2: PricingObject): number[][] {
+        let diff1menos2 = []; 
+        for (let i: number = 0; i < 5; i++) {
+            diff1menos2[i] = [];
+            for (let j: number = 0; j < 4; j++) {
+                diff1menos2[i][j] = null;
+            }
+        }
+        // setando taxas oferecidas - Visa/Master
+        diff1menos2[0][0] = pricing1.Debito__c - pricing2.Debito__c;
+        diff1menos2[0][1] = pricing1.Credito_a_Vista__c - pricing2.Credito_a_Vista__c;
+        diff1menos2[0][2] = pricing1.Credito_2_a_6__c - pricing2.Credito_2_a_6__c;
+        diff1menos2[0][3] = pricing1.Credito_7_a_12__c - pricing2.Credito_7_a_12__c;
+        // setando taxas oferecidas - Elo
+        diff1menos2[1][0] = pricing1.Debito_EloSub__c - pricing2.Debito_EloSub__c;
+        diff1menos2[1][1] = pricing1.Credito_a_Vista_EloSub__c - pricing2.Credito_a_Vista_EloSub__c;
+        diff1menos2[1][2] = pricing1.Credito_2_a_6_EloSub__c - pricing2.Credito_2_a_6_EloSub__c;
+        diff1menos2[1][3] = pricing1.Credito_7_a_12_EloSub__c - pricing2.Credito_7_a_12_EloSub__c;
+        // setando taxas oferecidas - Hiper
+        diff1menos2[2][0] = pricing1.credito_a_vista_hiper__c - pricing2.credito_a_vista_hiper__c;
+        diff1menos2[2][1] = pricing1.credito_2_a_6_hiper__c - pricing2.credito_2_a_6_hiper__c;
+        diff1menos2[2][2] = pricing1.credito_7_a_12_hiper__c - pricing2.credito_7_a_12_hiper__c;
+        // setando taxas oferecidas - Amex
+        diff1menos2[3][0] = pricing1.Credito_Vista_Amex__c - pricing2.Credito_Vista_Amex__c;
+        diff1menos2[3][1] = pricing1.Credito_2_a_6_Amex__c - pricing2.Credito_2_a_6_Amex__c;
+        diff1menos2[3][2] = pricing1.Credito_7_a_12_Amex__c - pricing2.Credito_7_a_12_Amex__c;
+        // setando taxas oferecidas RAV
+        diff1menos2[4][0] = pricing1.Taxa_Automatica__c - pricing2.Taxa_Automatica__c;
+        diff1menos2[4][1] = pricing1.Taxa_Spot__c - pricing2.Taxa_Spot__c;
+        return diff1menos2;
+    }
+
+    private transformToArray(pricing: PricingObject): number[][] {
+        let pricingArray = [];
+        for (let i: number = 0; i < 5; i++) {
+            pricingArray[i] = [];
+            for (let j: number = 0; j < 4; j++) {
+                pricingArray[i][j] = null;
+            }
+        }
+        // setando taxas oferecidas - Visa/Master
+        pricingArray[0][0] = pricing.Debito__c;
+        pricingArray[0][1] = pricing.Credito_a_Vista__c;
+        pricingArray[0][2] = pricing.Credito_2_a_6__c;
+        pricingArray[0][3] = pricing.Credito_7_a_12__c;
+        //Elo
+        pricingArray[1][0] = pricing.Debito_EloSub__c;
+        pricingArray[1][1] = pricing.Credito_a_Vista_EloSub__c;
+        pricingArray[1][2] = pricing.Credito_2_a_6_EloSub__c;
+        pricingArray[1][3] = pricing.Credito_7_a_12_EloSub__c;
+        //Hiper
+        pricingArray[2][0] = pricing.credito_a_vista_hiper__c;
+        pricingArray[2][1] = pricing.credito_2_a_6_hiper__c;
+        pricingArray[2][2] = pricing.credito_7_a_12_hiper__c;
+        //Amex
+        pricingArray[3][0] = pricing.Credito_Vista_Amex__c;
+        pricingArray[3][1] = pricing.Credito_2_a_6_Amex__c;
+        pricingArray[3][2] = pricing.Credito_7_a_12_Amex__c;
+        //RAV
+        pricingArray[4][0] = pricing.Taxa_Automatica__c;
+        pricingArray[4][1] = pricing.Taxa_Spot__c;
+        return pricingArray;
     }
 }

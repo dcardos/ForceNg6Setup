@@ -157,3 +157,11 @@ export class AccountSF {
     ExpectedTPV__c: number;
     Quantidade_de_Lojas__c: number;
 }
+
+// para tabela
+export interface LinhaTabelaReneg {
+    // colunas
+    bandeiras: string;
+    taxaAnterior: number;
+    propostaDoVend: number;
+}
