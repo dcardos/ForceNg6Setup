@@ -205,7 +205,7 @@ export class TaxasDashboardComponent {
                     break;
                 }
             }
-            if (this.pricingObj.Pricing_Status__c !== 'Novo') this.montaTabela(pricingObjList);
+            // if (this.pricingObj.Pricing_Status__c !== 'Novo') this.montaTabela(pricingObjList);
         });
         
         // método para pegar meios de captura
@@ -423,6 +423,9 @@ export class TaxasDashboardComponent {
             if (text) {
                 console.log('Texto de descarte: ' + text);
                 this.pricingObj.Justificativa_de_descarte__c = text;
+            } else {
+                this.loader--;
+                return;
             }
         }
         // LOG:

@@ -194,10 +194,10 @@
         </div> -->
         <div class="myCardCopy" style="margin-top: 1rem;" *ngIf="pricingObj?.Pricing_Status__c === 'Sem Alçada' || (pricingObj?.Pricing_Status__c === 'Pediu Aprovação' && pricingObj?.OwnerId === userId)">
             <mat-grid-list [cols]="breakpoint" rowHeight="3.5rem">
-                <mat-grid-tile [colspan]="breakpoint" rowspan="2">
+                <mat-grid-tile [colspan]="breakpoint" rowspan="3">
                     <mat-form-field style="width: 90%;">
                         <mat-label>Justificativa de proposta</mat-label>
-                        <textarea matInput formControlName="justificativaProposta" [readonly]="userId === pricingObj?.OwnerId  ? 'false' : 'true'"></textarea>
+                        <textarea matInput rows="5" formControlName="justificativaProposta" [readonly]="userId === pricingObj?.OwnerId  ? 'false' : 'true'"></textarea>
                     </mat-form-field>
                 </mat-grid-tile>
             </mat-grid-list>
